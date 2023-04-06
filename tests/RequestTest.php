@@ -128,7 +128,7 @@ final class RequestTest extends TestCase {
         $this->assertEquals('image/jpeg', $uploadedFile->type());
     }
 
-    public function testUploadedFileGivenTwoUploadedFileShouldReturnWithTwoUploadedFileClass() {
+    public function testUploadedFileGivenTwoUploadedFileShouldReturnWithAnUploadedFileArrayWithTwoElement() {
         $this->createTestApp();
         $_FILES = [
             'test_file' => [
