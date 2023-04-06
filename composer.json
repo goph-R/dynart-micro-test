@@ -3,5 +3,17 @@
         "phpunit/phpunit": "^9.5",
         "dynart/micro": "^0.6.0 || dev-main"
     },
-    "minimum-stability": "dev"
+    "require": {
+        "php": ">=7.1.0"
+    },
+    "minimum-stability": "dev",
+    "repositories": {
+        "dynart-micro": {
+            "type": "path",
+            "url": "../dynart-micro",
+            "options": {
+                "symlink": true
+            }
+        }
+    }
 }
