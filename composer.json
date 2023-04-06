@@ -1,0 +1,7 @@
+{
+    "require-dev": {
+        "phpunit/phpunit": "^9.5",
+        "dynart/micro": "^0.6.0 || dev-main"
+    },
+    "minimum-stability": "dev"
+}
