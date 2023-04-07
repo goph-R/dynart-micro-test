@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta name="viewport" content="initial-scale=1" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css" media="all">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Lato&family=Nunito:wght@200;400&display=swap" rel="stylesheet">
+    <title>Micro PHP Framework</title>
+    <style>
+        body, html { padding: 0; margin: 0; height: 100%; }
+        body {
+            background-image: url('web/bg.jpg');
+            background-size: cover;
+            background-color: #111;
+            font-family: Nunito, sans-serif;
+            font-weight: 400;
+            color: #fff;
+        }
+        body:after {
+            content:"";
+            position:fixed; /* stretch a fixed position to the whole screen */
+            top:0;
+            height:100vh; /* fix for mobile browser address bar appearing disappearing */
+            left:0;
+            right:0;
+            z-index:-1; /* needed to keep in the background */
+            background: url('web/bg.jpg') center center;
+            -webkit-background-size: cover;
+            -moz-background-size: cover;
+            -o-background-size: cover;
+            background-size: cover;
+        }
+        h1 {
+            font-weight: 400;
+            font-size: 1.8em;
+            text-align: center;
+            border-bottom: 1px solid #fff;
+            padding-bottom: 1em;
+            margin-bottom: 1em;
+        }
+        ul {
+            list-style-type: none;
+            margin: 0;
+            padding: 0;
+        }
+        li {
+
+        }
+        a {
+            color: #c6afe9;
+            text-decoration: none;
+            font-size: 1.1em;
+            line-height: 1.8em;
+            border-bottom: 1px dotted #aa87de;
+            display: block;
+            padding: 0 0.85em;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+
+        i {
+            color: #fff;
+        }
+        span {
+            padding-left: 0.75em;
+        }
+        @media only screen and (min-width: 1200px) {
+            .center {
+                margin: 0;
+                position: absolute;
+                top: 50%;
+                left: 50%;
+                -ms-transform: translate(-50%, -50%);
+                transform: translate(-50%, -50%);
+            }
+        }
+        @media only screen and (max-width: 1199px) {
+            .center {
+                margin: 0 auto;
+                max-width: 640px;
+                padding: 1em;
+            }
+            .brand {
+                text-align: center;
+            }
+        }
+        pre {
+            background: #111;
+            padding: 1em;
+            border-radius: 0.2em;
+        }
+        p {
+            text-align: center;
+            color: #ccc;
+            font-size: 0.9em;
+            padding-top: 1em;
+        }
+    </style>
+</head>
+<body>
+    <main class="center">
+        <div class="brand">
+            <img src="logo.svg?2">
+            <h1>Micro PHP Framework</h1>
+        </div>
+        <ul>
+            <li><a href="https://github.com/goph-R/dynart-micro"><i class="fa-brands fa-github"></i><span>Source code on GitHub</span></a></li>
+            <li><a href="https://packagist.org/packages/dynart/micro"><i class="fa-solid fa-box-archive"></i><span>PHP Package on Packagist</span></a></li>
+            <li><a href="https://github.com/goph-R/dynart-micro-test"><i class="fa-solid fa-square-check"></i><span>Tests on GitHub</span></a></li>
+            <li><a href="/docs/api"><i class="fa-solid fa-book"></i><span>API documentation</span></a></li>
+        </ul>
+        <p>Install with composer:</p>
+<pre>
+$ composer require dynart/micro
+</pre>
+    </main>
+</body>
+</html>

@@ -15,7 +15,7 @@
             <directory suffix=".php">c:/xampp/htdocs/dynart-micro/src</directory>
         </include>
         <report>
-            <html outputDirectory="html/" />
+            <html outputDirectory="reports/coverage-html" />
         </report>        
     </coverage>    
 </phpunit>
