@@ -10,4 +10,12 @@
         <ini name="display_errors" value="1"/>
         <ini name="display_startup_errors" value="1"/>
     </php>
+    <coverage>
+        <include>
+            <directory suffix=".php">c:/xampp/htdocs/dynart-micro/src</directory>
+        </include>
+        <report>
+            <html outputDirectory="html/" />
+        </report>        
+    </coverage>    
 </phpunit>

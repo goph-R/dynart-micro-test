@@ -5,24 +5,14 @@ use Dynart\Micro\Request;
 use Dynart\Micro\UploadedFile;
 use Dynart\Micro\App;
 
-final class RequestWithHeaderAndBody extends Request {
-    protected $headers = ['test_header' => 'test_value'];
-    public function body() {
-        return '{"test_key": "test_value"}';
-    }
-}
-
-final class RequestWithWrongJsonBody extends Request {
-    public function body() {
-        return '{"test_key":';
-    }
-}
-
 final class TestApp extends App {
     public function process() {}
     public function init() {}
 }
 
+/**
+ * @covers \Dynart\Micro\Request
+ */
 final class RequestTest extends TestCase {
 
     /** @var Request */
@@ -33,7 +23,9 @@ final class RequestTest extends TestCase {
         $_REQUEST = [];
         $_COOKIE = [];
         $_FILES = [];
-        $this->request = new RequestWithHeaderAndBody();
+        $this->request = new Request();
+        $this->request->setHeader('test_header', 'test_value');
+        $this->request->setBody('{"test_key": "test_value"}');
     }
 
     public function testGetReturnsValueFromGlobalRequestArray() {
@@ -104,8 +96,13 @@ final class RequestTest extends TestCase {
 
     public function testBodyAsJsonGivenTheBodyContainsInvalidJsonShouldThrowAppException() {
         $this->expectException(\Dynart\Micro\AppException::class);
-        $request = new RequestWithWrongJsonBody();
-        $request->bodyAsJson();
+        $this->request->setBody('{"invalid_json":');
+        $this->request->bodyAsJson();
+    }
+
+    public function testBodyAsJsonGivenTheBodyIsEmptyShouldReturnNull() {
+        $this->request->setBody('');
+        $this->assertNull($this->request->bodyAsJson());
     }
 
     public function testUploadedFileGivenOneUploadedFileShouldReturnWithOneUploadedFileClass() {
@@ -119,7 +116,7 @@ final class RequestTest extends TestCase {
                 'type' => 'image/jpeg'
             ]
         ];
-        $request = new Request();
+        $request = new Request(); // have to create the uploaded files in the constructor
         $uploadedFile = $request->uploadedFile('test_file');
         $this->assertEquals('test.jpg', $uploadedFile->name());
         $this->assertEquals(123, $uploadedFile->size());
@@ -128,7 +125,7 @@ final class RequestTest extends TestCase {
         $this->assertEquals('image/jpeg', $uploadedFile->type());
     }
 
-    public function testUploadedFileGivenTwoUploadedFileShouldReturnWithAnUploadedFileArrayWithTwoElement() {
+    public function testUploadedFileGivenTwoUploadedFileShouldReturnWithAnUploadedFileArrayWithTwoElements() {
         $this->createTestApp();
         $_FILES = [
             'test_file' => [
@@ -139,8 +136,8 @@ final class RequestTest extends TestCase {
                 'type' => ['image/jpeg', 'image/jpeg']
             ]
         ];
-        $request = new Request();
         /** @var UploadedFile[] $uploadedFile */
+        $request = new Request(); // have to create the uploaded files in the constructor
         $uploadedFile = $request->uploadedFile('test_file');
 
         $this->assertIsArray($uploadedFile);

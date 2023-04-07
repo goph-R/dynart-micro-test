@@ -4,7 +4,7 @@
         "dynart/micro": "^0.6.0 || dev-main"
     },
     "require": {
-        "php": ">=7.1.0"
+        "php": ">=7.4.0"
     },
     "minimum-stability": "dev",
     "repositories": {
