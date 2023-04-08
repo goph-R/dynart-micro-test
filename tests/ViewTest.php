@@ -6,16 +6,11 @@ use Dynart\Micro\View;
 
 /**
  * @covers \Dynart\Micro\View
- * @uses \Dynart\Micro\Router
- * @uses \Dynart\Micro\Config
  */
 final class ViewTest extends TestCase
 {
     /** @var View */
     private $view;
-
-    /** @var \Dynart\Micro\Router&\PHPUnit\Framework\MockObject\MockObject */
-    private $router;
 
     protected function setUp(): void {
 
@@ -24,20 +19,29 @@ final class ViewTest extends TestCase
             ->disableOriginalConstructor()
             ->getMock();
 
-        $config->method('get')
-            ->will($this->returnCallback(function ($name, $default = null, $useCache = true) {
-                if ($name == 'app.view_folders') {
-                    return dirname(__FILE__).'/../views';
-                } else {
-                    return '';
-                }
-            }));
+        $config->expects($this->any())
+            ->method('get')
+            ->will($this->returnValueMap([
+                ['app.views_folder', null, true, '~/views'],
+                ['app.root_path', null, true, dirname(dirname(__FILE__))],
+            ]));
 
-        $this->router = $this->getMockBuilder(Dynart\Micro\Router::class)
-            ->disableOriginalConstructor()
-            ->getMock();
+        $this->view = new View($config);
+    }
 
-        $this->view = new View($config, $this->router);
+    public function testUseLayout() { // coverage
+        $this->view->useLayout('test_layout');
+        $this->assertEquals('test_layout', $this->view->layout());
+    }
+
+    public function testSetTheme() { // coverage
+        $this->view->setTheme('test_theme');
+        $this->assertEquals('test_theme', $this->view->theme());
+    }
+
+    public function testAddFolder() { // coverage
+        $this->view->addFolder('test_namespace', 'test_folder');
+        $this->assertEquals('test_folder', $this->view->folder('test_namespace'));
     }
 
     public function testSetGet() {
@@ -81,6 +85,64 @@ final class ViewTest extends TestCase
         $this->assertEquals($testContent.$testContent, $this->view->block('test_block'));
     }
 
+    public function testFetchGivenNonExistingViewPathShouldThrowAppExcpetion() {
+        $this->expectException(\Dynart\Micro\AppException::class);
+        $this->view->fetch('non_existing');
+    }
 
+    public function testFetchWhenVariablesSetAndRenderedShouldRenderTheRightValues() {
+        $result = $this->view->fetch('variables', [
+            'var1' => 'value1',
+            'var2' => 'value2'
+        ]);
+        $this->assertEquals('value1,value2', $result);
+    }
 
+    public function testFetchWhenThemeSetIncludesAllFunctionsPhp() {
+        $this->view->setTheme('~/views/theme');
+        $this->view->fetch('empty');
+        $this->assertTrue(defined('TEST_THEME_FUNCTIONS'));
+        $this->assertTrue(defined('TEST_APP_FUNCTIONS'));
+        $this->assertTrue(function_exists('base_url'));
+    }
+
+    public function testFetchAppFunctionsPhpCanOverwriteDefaultFunctions() {
+        $this->view->fetch('empty');
+        $this->assertEquals(base_url(), 'overwritten');
+        $this->assertEquals(url(), 'overwritten');
+        $this->assertEquals(route_url(), 'overwritten');
+        $this->assertEquals(esc_html(), 'overwritten');
+        $this->assertEquals(esc_attr(), 'overwritten');
+        $this->assertEquals(esc_attrs(), 'overwritten');
+        $this->assertEquals(tr(), 'overwritten');
+    }
+
+    public function testFetchTemplateWithLayoutShouldRenderWithLayout() {
+        $content = $this->view->fetch('empty-with-layout');
+        $this->assertEquals('layout', $content);
+    }
+
+    public function testFetchWhenThemeSetAndTemplateIsInTheThemeFolderShouldRenderTheThemeTemplate() {
+        $this->view->setTheme('~/views/theme');
+        $content = $this->view->fetch('empty');
+        $this->assertEquals('overwritten', $content);
+    }
+
+    public function testFetchWhenNamespaceAddedAndUsedInTheViewPathShouldRenderThat() {
+        $this->view->addFolder('namespace', '~/views/namespace');
+        $content = $this->view->fetch('namespace:text');
+        $this->assertEquals('text', $content);
+    }
+
+    public function testFetchWhenThemeSetAndNamespaceAddedAndTheTemplateExistsBothInNamespaceAndThemeShouldRenderTheme() {
+        $this->view->addFolder('namespace', '~/views/namespace');
+        $this->view->setTheme('~/views/theme');
+        $content = $this->view->fetch('namespace:theme');
+        $this->assertEquals('theme', $content);
+    }
+
+    public function testFetchWhenThePathContainsANonExistingNameSpaceShouldThrowAppException() {
+        $this->expectException(\Dynart\Micro\AppException::class);
+        $this->view->fetch('non_existing:non_existing');
+    }
 }
