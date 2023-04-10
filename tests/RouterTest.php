@@ -44,9 +44,9 @@ final class RouterTest extends TestCase
         $this->config->method('get')
             ->will($this->returnValueMap([
                 [App::CONFIG_BASE_URL, null, true, 'https://test.com'],
-                [Router::CONFIG_INDEX_FILE, null, true, 'index.php'],
-                [Router::CONFIG_ROUTE_PARAMETER, null, true, 'route'],
-                [Router::CONFIG_USE_REWRITE, null, true, false]
+                [Router::CONFIG_INDEX_FILE, Router::DEFAULT_INDEX_FILE, true, 'index.php'],
+                [Router::CONFIG_ROUTE_PARAMETER, Router::DEFAULT_ROUTE_PARAMETER, true, 'route'],
+                [Router::CONFIG_USE_REWRITE, Router::DEFAULT_USE_REWRITE, true, false]
             ]));
     }
 
@@ -54,9 +54,9 @@ final class RouterTest extends TestCase
         $this->config->method('get')
             ->will($this->returnValueMap([
                 [App::CONFIG_BASE_URL, null, true, 'https://test.com'],
-                [Router::CONFIG_INDEX_FILE, null, true, 'index.php'],
-                [Router::CONFIG_ROUTE_PARAMETER, null, true, 'route'],
-                [Router::CONFIG_USE_REWRITE, null, true, true]
+                [Router::CONFIG_INDEX_FILE, Router::DEFAULT_INDEX_FILE, true, 'index.php'],
+                [Router::CONFIG_ROUTE_PARAMETER, Router::DEFAULT_ROUTE_PARAMETER, true, 'route'],
+                [Router::CONFIG_USE_REWRITE, Router::DEFAULT_USE_REWRITE, true, true]
             ]));
     }
 

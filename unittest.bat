@@ -1,2 +1,1 @@
-
-php -dauto_prepend_file=xdebug_filter.php vendor\bin\phpunit --coverage-html reports/coverage-html
+php vendor\bin\phpunit --coverage-html reports/coverage-html --bootstrap c:/xampp/htdocs/dynart-micro-test/vendor/autoload.php
