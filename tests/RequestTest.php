@@ -55,9 +55,9 @@ final class RequestTest extends TestCase {
         $this->assertEquals('default_value', $this->request->server('non_existing_key', 'default_value'));
     }
 
-    public function testMethodReturnsTheValueFromGlobalServerArray() {
+    public function testHttpMethodReturnsTheValueFromGlobalServerArray() {
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        $this->assertEquals('GET', $this->request->method());
+        $this->assertEquals('GET', $this->request->httpMethod());
     }
 
     public function testIpGivenRemoteAddrShouldReturnWithIt() {
