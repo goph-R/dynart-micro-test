@@ -1,1 +1,1 @@
-php vendor\bin\phpunit --coverage-html reports/coverage-html --bootstrap c:/xampp/htdocs/dynart-micro-test/vendor/autoload.php
+php vendor\bin\phpunit --coverage-html reports/coverage-html

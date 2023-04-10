@@ -12,7 +12,7 @@
     </php>
     <coverage>
         <include>
-            <directory suffix=".php">c:/xampp/htdocs/dynart-micro-test/vendor/dynart/micro/src</directory>
+            <directory suffix=".php">vendor/dynart/micro/src</directory>
         </include>
         <report>
             <html outputDirectory="reports/coverage-html" />
