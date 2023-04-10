@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Config;
 use Dynart\Micro\View;
+use Dynart\Micro\App;
 
 /**
  * @covers \Dynart\Micro\View
@@ -22,8 +23,8 @@ final class ViewTest extends TestCase
         $config->expects($this->any())
             ->method('get')
             ->will($this->returnValueMap([
-                ['app.views_folder', null, true, '~/views'],
-                ['app.root_path', null, true, dirname(dirname(__FILE__))],
+                [View::CONFIG_DEFAULT_FOLDER,null, true, '~/views'],
+                [App::CONFIG_ROOT_PATH, null, true, dirname(dirname(__FILE__))],
             ]));
 
         $this->view = new View($config);

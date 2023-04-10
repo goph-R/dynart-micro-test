@@ -2,6 +2,7 @@
 
 use Dynart\Micro\Translation;
 use Dynart\Micro\Config;
+use Dynart\Micro\App;
 
 /**
  * @covers \Dynart\Micro\Translation
@@ -18,7 +19,7 @@ final class TranslationTest extends \PHPUnit\Framework\TestCase
         $this->config->expects($this->any())
             ->method('get')
             ->will($this->returnValueMap([
-                ['app.root_path', null, true, dirname(dirname(__FILE__))],
+                [App::CONFIG_ROOT_PATH, null, true, dirname(dirname(__FILE__))],
                 [Translation::CONFIG_DEFAULT, Translation::DEFAULT_LOCALE, true, 'hu']
             ]));
         $this->config->expects($this->any())

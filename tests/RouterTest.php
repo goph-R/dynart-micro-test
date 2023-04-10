@@ -4,6 +4,7 @@ use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Config;
 use Dynart\Micro\Router;
 use Dynart\Micro\Request;
+use Dynart\Micro\App;
 
 class PrefixVariableCallableClass {
     function prefixVariable1() {
@@ -42,20 +43,20 @@ final class RouterTest extends TestCase
     private function mockConfigGetWithNoRewrite() {
         $this->config->method('get')
             ->will($this->returnValueMap([
-                ['app.base_url', null, true, 'https://test.com'],
-                ['app.index_file', null, true, 'index.php'],
-                ['app.route_parameter', null, true, 'route'],
-                ['app.use_rewrite', null, true, false]
+                [App::CONFIG_BASE_URL, null, true, 'https://test.com'],
+                [Router::CONFIG_INDEX_FILE, null, true, 'index.php'],
+                [Router::CONFIG_ROUTE_PARAMETER, null, true, 'route'],
+                [Router::CONFIG_USE_REWRITE, null, true, false]
             ]));
     }
 
     private function mockConfigGetWithRewrite() {
         $this->config->method('get')
             ->will($this->returnValueMap([
-                ['app.base_url', null, true, 'https://test.com'],
-                ['app.index_file', null, true, 'index.php'],
-                ['app.route_parameter', null, true, 'route'],
-                ['app.use_rewrite', null, true, true]
+                [App::CONFIG_BASE_URL, null, true, 'https://test.com'],
+                [Router::CONFIG_INDEX_FILE, null, true, 'index.php'],
+                [Router::CONFIG_ROUTE_PARAMETER, null, true, 'route'],
+                [Router::CONFIG_USE_REWRITE, null, true, true]
             ]));
     }
 
