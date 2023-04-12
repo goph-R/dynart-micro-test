@@ -5,7 +5,7 @@ use Dynart\Micro\Request;
 use Dynart\Micro\UploadedFile;
 use Dynart\Micro\App;
 
-final class TestApp extends App {
+final class RequestTestApp extends App {
     public function process() {}
     public function init() {}
 }
@@ -158,7 +158,7 @@ final class RequestTest extends TestCase {
 
     private function createTestApp() { // needed for a working `create` method
         if (App::instance()) { return; }
-        $app = new TestApp();
+        $app = new RequestTestApp();
         App::run($app);
     }
 }
