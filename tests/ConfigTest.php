@@ -36,7 +36,7 @@ final class ConfigTest extends TestCase {
         $this->assertEquals(22, $config->get('integer'));
     }
 
-    public function testCommaSeparatedValues() {
+    public function testGetCommaSeparatedValuesShouldReturnTrimmedStringInAnArray() {
         $config = new Config();
         $config->load(dirname(dirname(__FILE__)) . '/configs/config.ini');
         $this->assertEquals(['1', '2', '3'], $config->getCommaSeparatedValues('comma.separated'));
@@ -50,11 +50,14 @@ final class ConfigTest extends TestCase {
         $this->assertEquals('outside', $config->get('env.from.outside'));
     }
 
-    public function testGetArrayShouldUseCacheOnSecondCallInDefault() {
+    public function testGetArrayReturnsWithArrayInArrayAndCachesIt() {
         $config = new Config();
-        $this->assertEquals(['a', 'b'], $config->getArray('env.array'));
+        $expected = [ // check phpunit.dist.xml for environment variables
+            ['name' => 'name_0', 'description' => 'description_0'],
+            ['name' => 'name_1', 'description' => 'description_1']
+        ];
+        $this->assertEquals($expected, $config->getArray('env.array'));
         $this->assertTrue($config->isCached('env.array'));
-        $this->assertEquals(['a', 'b'], $config->getArray('env.array'));
     }
 
     public function testGetFullPathShouldReturnARightPath() {
