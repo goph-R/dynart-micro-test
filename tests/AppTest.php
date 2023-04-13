@@ -37,6 +37,21 @@ class TestClassWithDependencies {
     }
 }
 
+class TestDependency1 {
+    public function __construct(TestDependency2 $s) {
+    }
+}
+
+class TestDependency2 {
+    public function __construct(TestDependency3 $s) {
+    }
+}
+
+class TestDependency3 {
+    public function __construct(TestDependency1 $s) {
+    }
+}
+
 /**
  * @covers \Dynart\Micro\App
  */
@@ -98,5 +113,27 @@ final class AppTest extends TestCase
         $app = new TestApp();
         $test2 = $app->create(TestClass2::class);
         $this->assertTrue($test2->lazyParam());
+    }
+
+    public function testInterfacesReturnsWithTheAddedInterfaces() {
+        $app = new TestApp();
+        $app->add(TestClass1::class);
+        $this->assertContains(TestClass1::class, $app->interfaces());
+    }
+
+    public function testCircularDependency() {
+        $this->expectException(AppException::class);
+        $app = new TestApp();
+        $app->add(TestDependency3::class);
+        $app->add(TestDependency2::class);
+        $app->add(TestDependency1::class);
+        $app->get(TestDependency1::class);
+    }
+
+    public function testNonExistingDependency() {
+        $this->expectException(AppException::class);
+        $app = new TestApp();
+        $app->add(TestDependency1::class);
+        $app->get(TestDependency1::class);
     }
 }

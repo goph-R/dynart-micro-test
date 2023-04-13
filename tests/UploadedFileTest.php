@@ -6,8 +6,7 @@ use Dynart\Micro\UploadedFile;
 /**
  * @covers \Dynart\Micro\UploadedFile
  */
-final class UploadedFileTest extends TestCase
-{
+final class UploadedFileTest extends TestCase {
     public function testUploadedFile() {
         $uploadedFile = new UploadedFile('name', 'tempPath', UPLOAD_ERR_OK, 'image/jpeg', 123);
         $this->assertEquals('name', $uploadedFile->name());

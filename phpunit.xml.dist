@@ -6,6 +6,8 @@
     </testsuites>
     <php>
         <server name="APP_ENV" value="testing"/>
+        <env name="env.array.0" value="a"/>
+        <env name="env.array.1" value="b"/>
         <ini name="error_reporting" value="-1"/>
         <ini name="display_errors" value="1"/>
         <ini name="display_startup_errors" value="1"/>

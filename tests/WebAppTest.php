@@ -38,6 +38,18 @@ final class WebAppTest extends TestCase
         $this->webApp = new TestWebApp([$basePath.'/webapp.config.ini', $basePath.'/webapp.config-extend.ini']);
     }
 
+    private function setUpWebAppForProcess() {
+        $_REQUEST['route'] = '/test/route/123';
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $this->webApp->init();
+    }
+
+    private function fetchWebAppOutput() {
+        ob_start();
+        $this->webApp->process();
+        return ob_end_clean();
+    }
+
     public function testBaseClassesWereAdded() {
         $this->assertTrue($this->webApp->hasInterface(Config::class));
         $this->assertTrue($this->webApp->hasInterface(Logger::class));
@@ -63,5 +75,20 @@ final class WebAppTest extends TestCase
         $this->assertTrue($middleware->didRun());
     }
 
+    public function testProcessCallsRouteWithParameterOutputsString() {
+        $this->setUpWebAppForProcess();
+        $this->webApp->get(Router::class)->add('/test/route/?', function($value) { return $value; });
+        $content = $this->fetchWebAppOutput();
+        $this->assertEquals(WebApp::CONTENT_TYPE_HTML, $this->webApp->get(Response::class)->header(WebApp::HEADER_CONTENT_TYPE));
+        $this->assertEquals('123', $content);
+    }
+
+    public function testProcessCallsRouteWithParameterOutputsArrayAsJsonString() {
+        $this->setUpWebAppForProcess();
+        $this->webApp->get(Router::class)->add('/test/route/?', function($value) { return ['value' => $value]; });
+        $content = $this->fetchWebAppOutput();
+        $this->assertEquals(WebApp::CONTENT_TYPE_JSON, $this->webApp->get(Response::class)->header(WebApp::HEADER_CONTENT_TYPE));
+        $this->assertEquals('{"value":"123"}', $content);
+    }
 
 }
