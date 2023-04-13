@@ -14,19 +14,8 @@ final class ViewTest extends TestCase
     private $view;
 
     protected function setUp(): void {
-
-        /** @var \Dynart\Micro\Config&\PHPUnit\Framework\MockObject\MockObject $config */
-        $config = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-
-        $config->expects($this->any())
-            ->method('get')
-            ->will($this->returnValueMap([
-                [View::CONFIG_DEFAULT_FOLDER,null, true, '~/views'],
-                [App::CONFIG_ROOT_PATH, null, true, dirname(dirname(__FILE__))],
-            ]));
-
+        $config = new Config();
+        $config->load(dirname(dirname(__FILE__)).'/configs/view.config.ini');
         $this->view = new View($config);
     }
 

@@ -35,7 +35,7 @@ final class WebAppTest extends TestCase
 
     protected function setUp(): void {
         $basePath = dirname(dirname(__FILE__));
-        $this->webApp = new TestWebApp([$basePath.'/webapp.config.ini', $basePath.'/webapp.config-extend.ini']);
+        $this->webApp = new TestWebApp([$basePath.'/configs/webapp.config.ini', $basePath.'/configs/webapp.config-extend.ini']);
     }
 
     private function setUpWebAppForProcess() {
