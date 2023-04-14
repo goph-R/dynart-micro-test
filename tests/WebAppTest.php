@@ -10,9 +10,73 @@ use Dynart\Micro\Router;
 use Dynart\Micro\Session;
 use Dynart\Micro\View;
 use Dynart\Micro\Middleware;
+use Dynart\Micro\AppException;
 
 class TestWebApp extends WebApp {
+    private $finished = false;
+    public function finish(string $content = '') {
+        echo $content;
+        $this->finished = true;
+    }
+    public function isFinished() {
+        return $this->finished;
+    }
+    protected function isCli() {
+        return false;
+    }
+}
+
+class InitExceptionRouter extends Router {
+    public function __construct(Config $config, Request $request) {
+        parent::__construct($config, $request);
+        throw new AppException("Exception on init");
+    }
+}
+
+class InitExceptionConfig extends Config {
+    public function __construct() {
+        parent::__construct();
+        throw new AppException("Exception on init");
+    }
+}
+
+class InitExceptionLogger extends Logger {
+    public function __construct(Config $config) {
+        parent::__construct($config);
+        throw new AppException("Exception on init");
+    }
+}
+
+
+class TestWebAppInitExceptionWithRouter extends TestWebApp {
+    public function __construct(array $configPaths) {
+        parent::__construct($configPaths);
+        $this->add(Router::class, InitExceptionRouter::class);
+    }
+}
+
+
+class TestWebAppWithNoErrorPage extends WebApp {
+    public function __construct(array $configPaths) {
+        parent::__construct($configPaths);
+        $this->add(Router::class, InitExceptionRouter::class);
+    }
     public function finish(string $content = '') {}
+}
+
+
+class TestWebAppInitExceptionWithConfig extends TestWebApp {
+    public function __construct(array $configPaths) {
+        parent::__construct($configPaths);
+        $this->add(Config::class, InitExceptionConfig::class);
+    }
+}
+
+class TestWebAppInitExceptionWithLogger extends TestWebApp {
+    public function __construct(array $configPaths) {
+        parent::__construct($configPaths);
+        $this->add(Logger::class, InitExceptionLogger::class);
+    }
 }
 
 class TestMiddleware implements Middleware {
@@ -23,6 +87,10 @@ class TestMiddleware implements Middleware {
     public function didRun() {
         return $this->didRun;
     }
+}
+
+class TestController {
+    public function index() { return 'test'; }
 }
 
 /**
@@ -50,7 +118,7 @@ final class WebAppTest extends TestCase
         return ob_end_clean();
     }
 
-    public function testBaseClassesWereAdded() {
+    public function testConstructorShouldAddBaseClasses() {
         $this->assertTrue($this->webApp->hasInterface(Config::class));
         $this->assertTrue($this->webApp->hasInterface(Logger::class));
         $this->assertTrue($this->webApp->hasInterface(Request::class));
@@ -91,4 +159,67 @@ final class WebAppTest extends TestCase
         $this->assertEquals('{"value":"123"}', $content);
     }
 
+    public function testProcessCallsRouteWithClassAndMethodName() {
+        $this->setUpWebAppForProcess();
+        $this->webApp->add(TestController::class);
+        $this->webApp->get(Router::class)->add('/test/route/?', [TestController::class, 'index']);
+        $content = $this->fetchWebAppOutput();
+        $this->assertEquals('test', $content);
+    }
+
+    public function testRedirectClearsHeadersSetsOnlyLocationSendsNoContentAndFinishes() {
+        $this->webApp->init();
+        $response = $this->webApp->get(Response::class);
+        $response->setHeader('remove', 'this');
+        ob_start();
+        $this->webApp->redirect('somewhere');
+        $content = ob_get_clean();
+        $this->assertEquals('/index.php?route=somewhere', $response->header('Location'));
+        $this->assertNull($response->header('remove'));
+        $this->assertEmpty($content);
+        $this->assertTrue($this->webApp->isFinished());
+    }
+
+    public function testRedirectWithFullUrl() {
+        $this->webApp->init();
+        $response = $this->webApp->get(Response::class);
+        $this->webApp->redirect('https://somewhere.com');
+        $this->assertEquals('https://somewhere.com', $response->header('Location'));
+    }
+
+    public function testHandleExceptionOnProcess() {
+        $this->setUpWebAppForProcess();
+        $this->webApp->get(Router::class)->add('/test/route/?', function($value) { throw new AppException("error"); });
+        ob_start();
+        $this->webApp->process();
+        $content = ob_get_clean();
+        $this->assertTrue(strpos($content, '<h2>Dynart\Micro\AppException</h2>') !== false);
+    }
+
+    public function testHandleExceptionOnInitWithRouter() {
+        $webApp = new TestWebAppInitExceptionWithRouter([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        ob_start();
+        $webApp->init();
+        $content = ob_get_clean();
+        echo $content;
+        $this->assertTrue(strpos($content, '<h2>Dynart\Micro\AppException</h2>') !== false);
+    }
+
+    public function testHandleExceptionOnInitWithConfig() {
+        $this->expectException(AppException::class);
+        $webApp = new TestWebAppInitExceptionWithConfig([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        $webApp->init();
+    }
+
+    public function testHandleExceptionOnInitWithLogger() {
+        $this->expectException(AppException::class);
+        $webApp = new TestWebAppInitExceptionWithLogger([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        $webApp->init();
+    }
+
+    public function testHandleExceptionOnInitWithRouterWithCliAndWithNoErrorPages() { // just for coverage
+        $webApp = new TestWebAppWithNoErrorPage([dirname(dirname(__FILE__)).'/configs/webapp.config.no-error-pages.ini']);
+        $webApp->init();
+        $this->assertInstanceOf(WebApp::class, $webApp);
+    }
 }

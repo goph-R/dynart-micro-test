@@ -58,6 +58,7 @@ final class ConfigTest extends TestCase {
         ];
         $this->assertEquals($expected, $config->getArray('env.array'));
         $this->assertTrue($config->isCached('env.array'));
+        $this->assertEquals($expected, $config->getArray('env.array')); // just for coverage (cached if)
     }
 
     public function testGetFullPathShouldReturnARightPath() {
