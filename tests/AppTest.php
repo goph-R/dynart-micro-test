@@ -58,38 +58,38 @@ class TestDependency3 {
 final class AppTest extends TestCase
 {
     public function testRunSetsInstance() {
-        $app = new TestApp();
+        $app = new TestApp([]);
         App::run($app);
         $this->assertEquals($app, App::instance());
     }
 
     public function testRunCallTwiceThrowsAppException() {
         $this->expectException(AppException::class);
-        $app = new TestApp();
+        $app = new TestApp([]);
         App::run($app);
         App::run($app);
     }
 
     public function testAddStoresTheInterfaceAndClass() {
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestInterface::class, TestClass1::class);
         $this->assertTrue($app->hasInterface(TestInterface::class));
     }
 
     public function testAddThrowsAppExceptionWhenClassDoesNotImplementInterface() {
         $this->expectException(AppException::class);
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestInterface::class, TestClass2::class);
     }
 
     public function testGetClassThrowsAppExceptionWhenNoInterfaceWasAdded() {
         $this->expectException(AppException::class);
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->getClass(TestInterface::class);
     }
 
     public function testGetCreatesAnInstanceWithDependencies() {
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestInterface::class, TestClass1::class);
         $app->add(TestClass2::class);
         $app->add(TestClassWithDependencies::class);
@@ -98,32 +98,32 @@ final class AppTest extends TestCase
     }
 
     public function testGetReturnsAlwaysWithTheSameInstance() {
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestInterface::class, TestClass1::class);
         $this->assertSame($app->get(TestInterface::class), $app->get(TestInterface::class));
     }
 
     public function testCreateThrowsAppExceptionWhenClassDoesNotExist() {
         $this->expectException(AppException::class);
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->create('\SomethingThatDoesNotExists');
     }
 
     public function testCreateCallsPostConstruct() {
-        $app = new TestApp();
+        $app = new TestApp([]);
         $test2 = $app->create(TestClass2::class);
         $this->assertTrue($test2->lazyParam());
     }
 
     public function testInterfacesReturnsWithTheAddedInterfaces() {
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestClass1::class);
         $this->assertContains(TestClass1::class, $app->interfaces());
     }
 
     public function testCircularDependency() {
         $this->expectException(AppException::class);
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestDependency3::class);
         $app->add(TestDependency2::class);
         $app->add(TestDependency1::class);
@@ -132,7 +132,7 @@ final class AppTest extends TestCase
 
     public function testNonExistingDependency() {
         $this->expectException(AppException::class);
-        $app = new TestApp();
+        $app = new TestApp([]);
         $app->add(TestDependency1::class);
         $app->get(TestDependency1::class);
     }

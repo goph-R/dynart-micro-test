@@ -14,7 +14,7 @@ use Dynart\Micro\AppException;
 
 class TestWebApp extends WebApp {
     private $finished = false;
-    public function finish(string $content = '') {
+    public function finish($content = 0) {
         echo $content;
         $this->finished = true;
     }
@@ -29,24 +29,29 @@ class TestWebApp extends WebApp {
 class InitExceptionRouter extends Router {
     public function __construct(Config $config, Request $request) {
         parent::__construct($config, $request);
-        throw new AppException("Exception on init");
+        throw new AppException("Router exception on init");
     }
 }
 
 class InitExceptionConfig extends Config {
     public function __construct() {
         parent::__construct();
-        throw new AppException("Exception on init");
+        throw new AppException("Config exception on init");
     }
 }
 
 class InitExceptionLogger extends Logger {
     public function __construct(Config $config) {
         parent::__construct($config);
-        throw new AppException("Exception on init");
+        throw new AppException("Logger exception on init");
     }
 }
 
+class TestWebAppInitException extends TestWebApp {
+    public function init() {
+        throw new AppException("Exception on init");
+    }
+}
 
 class TestWebAppInitExceptionWithRouter extends TestWebApp {
     public function __construct(array $configPaths) {
@@ -61,7 +66,7 @@ class TestWebAppWithNoErrorPage extends WebApp {
         parent::__construct($configPaths);
         $this->add(Router::class, InitExceptionRouter::class);
     }
-    public function finish(string $content = '') {}
+    public function finish($content = 0) {}
 }
 
 
@@ -109,18 +114,16 @@ final class WebAppTest extends TestCase
     private function setUpWebAppForProcess() {
         $_REQUEST['route'] = '/test/route/123';
         $_SERVER['REQUEST_METHOD'] = 'GET';
-        $this->webApp->init();
+        $this->webApp->fullInit();
     }
 
     private function fetchWebAppOutput() {
         ob_start();
-        $this->webApp->process();
-        return ob_end_clean();
+        $this->webApp->fullProcess();
+        return ob_get_clean();
     }
 
-    public function testConstructorShouldAddBaseClasses() {
-        $this->assertTrue($this->webApp->hasInterface(Config::class));
-        $this->assertTrue($this->webApp->hasInterface(Logger::class));
+    public function testConstructorShouldAddBaseWebRelatedClasses() {
         $this->assertTrue($this->webApp->hasInterface(Request::class));
         $this->assertTrue($this->webApp->hasInterface(Response::class));
         $this->assertTrue($this->webApp->hasInterface(Router::class));
@@ -128,17 +131,17 @@ final class WebAppTest extends TestCase
         $this->assertTrue($this->webApp->hasInterface(View::class));
     }
 
-    public function testInitLoadsConfigs() {
+    public function testFullInitLoadsConfigs() {
         /** @var Config $config */
-        $this->webApp->init();
+        $this->webApp->fullInit();
         $config = $this->webApp->get(Config::class);
         $this->assertTrue($config->get('loaded'));
         $this->assertTrue($config->get('extension_loaded'));
     }
 
-    public function testInitCallsMiddlewares() {
+    public function testFullInitCallsMiddlewares() {
         $this->webApp->addMiddleware(TestMiddleware::class);
-        $this->webApp->init();
+        $this->webApp->fullInit();
         $middleware = $this->webApp->get(TestMiddleware::class);
         $this->assertTrue($middleware->didRun());
     }
@@ -187,39 +190,52 @@ final class WebAppTest extends TestCase
         $this->assertEquals('https://somewhere.com', $response->header('Location'));
     }
 
-    public function testHandleExceptionOnProcess() {
+    public function testHandleExceptionOnFullProcess() {
         $this->setUpWebAppForProcess();
         $this->webApp->get(Router::class)->add('/test/route/?', function($value) { throw new AppException("error"); });
         ob_start();
-        $this->webApp->process();
+        $this->webApp->fullProcess();
         $content = ob_get_clean();
         $this->assertTrue(strpos($content, '<h2>Dynart\Micro\AppException</h2>') !== false);
     }
 
-    public function testHandleExceptionOnInitWithRouter() {
+    public function testHandleExceptionOnFullInitWithRouter() {
         $webApp = new TestWebAppInitExceptionWithRouter([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
         ob_start();
-        $webApp->init();
+        $webApp->fullInit();
         $content = ob_get_clean();
-        echo $content;
         $this->assertTrue(strpos($content, '<h2>Dynart\Micro\AppException</h2>') !== false);
     }
 
-    public function testHandleExceptionOnInitWithConfig() {
+    public function testHandleExceptionOnFullInitWithConfig() {
         $this->expectException(AppException::class);
         $webApp = new TestWebAppInitExceptionWithConfig([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
-        $webApp->init();
+        $webApp->fullInit();
     }
 
-    public function testHandleExceptionOnInitWithLogger() {
+    public function testHandleExceptionOnFullInitWithLogger() {
         $this->expectException(AppException::class);
         $webApp = new TestWebAppInitExceptionWithLogger([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
-        $webApp->init();
+        $webApp->fullInit();
     }
 
-    public function testHandleExceptionOnInitWithRouterWithCliAndWithNoErrorPages() { // just for coverage
+    public function testHandleExceptionOnFullInitWithRouterWithCliAndWithNoErrorPages() { // just for coverage
         $webApp = new TestWebAppWithNoErrorPage([dirname(dirname(__FILE__)).'/configs/webapp.config.no-error-pages.ini']);
-        $webApp->init();
+        $webApp->fullInit();
         $this->assertInstanceOf(WebApp::class, $webApp);
     }
+/*
+    public function testHandleExceptionOnFullInit() {
+        $webApp = new TestWebAppInitException([]);
+        ob_start();
+        $webApp->fullInit();
+        $content = ob_get_clean();
+        $this->assertEquals('1', $content);
+    }
+
+    public function testError404() {
+        $this->setUpWebAppForProcess();
+        $content = $this->fetchWebAppOutput();
+        $this->assertEquals('1', $content);
+    }*/
 }
