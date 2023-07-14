@@ -10,22 +10,38 @@ use Dynart\Micro\View;
 
 class MyController {
 
+    /** @var View */
     private $view;
 
-    public function __construct(View $view) { // the View parameter will be automatically injected
+    public function __construct(View $view) { // the `$view` parameter will be automatically injected
         $this->view = $view;
     }
-    
+
+    /**
+     * Renders the vendor/dynart/micro/views/index.phtml
+     * Example call: http://localhost/my-app/index.php
+     *
+     * @route GET /
+     * @return string
+     */
     public function index() {
-        // render index.phtml
         return $this->view->fetch('index');
     }
 
-    public function example($parameter) {
-        // the path variable value will be in '$parameter'
-        return $this->view->fetch('index', [
-            'parameter' => $parameter // give the parameter for the view
-        ]); 
+    /**
+     * Returns with the path variables in JSON format
+     * Example call: http://localhost/my-app/index.php?route=/example/value1/value2
+     *
+     * @route GET /example/?/?
+     * @param string $param1 The first path variable
+     * @param string $param2 The second path variable
+     * @return array
+     */
+    public function example($param1, $param2) {
+        return [
+            'param1' => $param1,
+            'param2' => $param2
+        ];
     }
 }
 
@@ -34,19 +50,12 @@ class MyApp extends WebApp { // inherit from WebApp for an MVC/REST web applicat
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
 
-        // register the MyController class for dependency injection
+        // register the controller
         Micro::add(MyController::class);
+
+        // use the route annotations on the registered classes
+        $this->useRouteAnnotations();
     }
-
-    public function init() {
-        parent::init();
-
-        // add endpoint for home
-        $this->router->add('/', [MyController::class, 'index']);
-
-        // add endpoint with path variable
-        $this->router->add('/example/?', [MyController::class, 'example']);
-    }    
 }
 
 Micro::run(new MyApp(['config.ini.php']));
