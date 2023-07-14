@@ -76,7 +76,7 @@ final class ViewTest extends TestCase
     }
 
     public function testFetchGivenNonExistingViewPathShouldThrowAppExcpetion() {
-        $this->expectException(\Dynart\Micro\AppException::class);
+        $this->expectException(\Dynart\Micro\MicroException::class);
         $this->view->fetch('non_existing');
     }
 
@@ -131,8 +131,8 @@ final class ViewTest extends TestCase
         $this->assertEquals('theme', $content);
     }
 
-    public function testFetchWhenThePathContainsANonExistingNameSpaceShouldThrowAppException() {
-        $this->expectException(\Dynart\Micro\AppException::class);
+    public function testFetchWhenThePathContainsANonExistingNameSpaceShouldThrowMicroException() {
+        $this->expectException(\Dynart\Micro\MicroException::class);
         $this->view->fetch('non_existing:non_existing');
     }
 }

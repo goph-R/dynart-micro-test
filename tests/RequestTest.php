@@ -94,8 +94,8 @@ final class RequestTest extends TestCase {
         $this->assertContains('test_value', $array);
     }
 
-    public function testBodyAsJsonGivenTheBodyContainsInvalidJsonShouldThrowAppException() {
-        $this->expectException(\Dynart\Micro\AppException::class);
+    public function testBodyAsJsonGivenTheBodyContainsInvalidJsonShouldThrowMicroException() {
+        $this->expectException(\Dynart\Micro\MicroException::class);
         $this->request->setBody('{"invalid_json":');
         $this->request->bodyAsJson();
     }
@@ -106,7 +106,6 @@ final class RequestTest extends TestCase {
     }
 
     public function testUploadedFileGivenOneUploadedFileShouldReturnWithOneUploadedFileClass() {
-        $this->createTestApp();
         $_FILES = [
             'test_file' => [
                 'name' => 'test.jpg',
@@ -126,7 +125,6 @@ final class RequestTest extends TestCase {
     }
 
     public function testUploadedFileGivenTwoUploadedFileShouldReturnWithAnUploadedFileArrayWithTwoElements() {
-        $this->createTestApp();
         $_FILES = [
             'test_file' => [
                 'name' => ['test1.jpg', 'test2.jpg'],
@@ -154,11 +152,5 @@ final class RequestTest extends TestCase {
         $this->assertEquals('/tmp/test2.jpg', $uploadedFile[1]->tempPath());
         $this->assertEquals(UPLOAD_ERR_OK, $uploadedFile[1]->error());
         $this->assertEquals('image/jpeg', $uploadedFile[1]->type());
-    }
-
-    private function createTestApp() { // needed for a working `create` method
-        if (App::instance()) { return; }
-        $app = new RequestTestApp();
-        App::run($app);
     }
 }
