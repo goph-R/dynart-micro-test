@@ -4,7 +4,7 @@
 
 require_once __DIR__ . '/vendor/autoload.php';
 
-use Dynart\Micro\App;
+use Dynart\Micro\Micro;
 use Dynart\Micro\WebApp;
 use Dynart\Micro\View;
 
@@ -29,13 +29,13 @@ class MyController {
     }
 }
 
-class MyApp extends WebApp { // inherit from WebApp for an MVC web application
+class MyApp extends WebApp { // inherit from WebApp for an MVC/REST web application
 
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
 
         // register the MyController class for dependency injection
-        $this->add(MyController::class);
+        Micro::add(MyController::class);
     }
 
     public function init() {
@@ -49,7 +49,7 @@ class MyApp extends WebApp { // inherit from WebApp for an MVC web application
     }    
 }
 
-App::run(new MyApp(['config.ini.php']));
+Micro::run(new MyApp(['config.ini.php']));
 
 
 

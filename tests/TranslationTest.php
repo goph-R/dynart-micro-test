@@ -23,7 +23,7 @@ final class TranslationTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('hu', $translation->locale());
     }
 
-    public function testGetWhenMultiLocaleIsSetAndLocaleIsHuAndTheTextHasVariable() {
+    public function testGetWhenMultiLocaleIsSetAndLocaleIsDefaultAndTheTextHasVariable() {
         $this->loadConfig();
         $translation = new Translation($this->config);
         $translation->add('test', '~/translations');
