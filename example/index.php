@@ -1,6 +1,6 @@
 <?php
 
-// This file should be in your document root folder!
+// This file and the config.ini.php should be in your [document root]/my-app folder!
 
 require_once __DIR__ . '/vendor/autoload.php';
 
@@ -19,6 +19,7 @@ class MyController {
 
     /**
      * Renders the vendor/dynart/micro/views/index.phtml
+     *
      * Example call: http://localhost/my-app/index.php
      *
      * @route GET /
@@ -30,6 +31,7 @@ class MyController {
 
     /**
      * Returns with the path variables in JSON format
+     *
      * Example call: http://localhost/my-app/index.php?route=/example/value1/value2
      *
      * @route GET /example/?/?
@@ -59,6 +61,4 @@ class MyApp extends WebApp { // inherit from WebApp for an MVC/REST web applicat
 }
 
 Micro::run(new MyApp(['config.ini.php']));
-
-
 

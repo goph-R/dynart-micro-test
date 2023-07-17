@@ -1,5 +1,7 @@
 <?php
 
+require_once 'ResettableMicro.php';
+
 use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
@@ -109,7 +111,7 @@ final class WebAppTest extends TestCase
     private $webApp;
 
     protected function setUp(): void {
-        Micro::reset();
+        ResettableMicro::reset();
         $basePath = dirname(dirname(__FILE__));
         $this->webApp = new TestWebApp([$basePath.'/configs/webapp.config.ini', $basePath.'/configs/webapp.config-extend.ini']);
     }
@@ -120,7 +122,7 @@ final class WebAppTest extends TestCase
         $this->webApp->fullInit();
     }
 
-    private function fetchWebAppOutput() {
+    private function processAndFetchOutput() {
         ob_start();
         $this->webApp->fullProcess();
         return ob_get_clean();
@@ -152,7 +154,7 @@ final class WebAppTest extends TestCase
     public function testProcessCallsRouteWithParameterOutputsString() {
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { return $value; });
-        $content = $this->fetchWebAppOutput();
+        $content = $this->processAndFetchOutput();
         $this->assertEquals(WebApp::CONTENT_TYPE_HTML, Micro::get(Response::class)->header(WebApp::HEADER_CONTENT_TYPE));
         $this->assertEquals('123', $content);
     }
@@ -160,7 +162,7 @@ final class WebAppTest extends TestCase
     public function testProcessCallsRouteWithParameterOutputsArrayAsJsonString() {
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { return ['value' => $value]; });
-        $content = $this->fetchWebAppOutput();
+        $content = $this->processAndFetchOutput();
         $this->assertEquals(WebApp::CONTENT_TYPE_JSON, Micro::get(Response::class)->header(WebApp::HEADER_CONTENT_TYPE));
         $this->assertEquals('{"value":"123"}', $content);
     }
@@ -169,7 +171,7 @@ final class WebAppTest extends TestCase
         $this->setUpWebAppForProcess();
         Micro::add(TestController::class);
         Micro::get(Router::class)->add('/test/route/?', [TestController::class, 'index']);
-        $content = $this->fetchWebAppOutput();
+        $content = $this->processAndFetchOutput();
         $this->assertEquals('test', $content);
     }
 

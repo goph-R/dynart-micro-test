@@ -1,5 +1,7 @@
 <?php
 
+require_once 'ResettableMicro.php';
+
 use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
@@ -61,7 +63,7 @@ final class MicroTest extends TestCase
 {
 
     protected function setUp(): void {
-        Micro::reset();
+        ResettableMicro::reset();
     }
 
     public function testRunSetsInstance() {

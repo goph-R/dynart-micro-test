@@ -17,7 +17,7 @@ log.dir = "./logs"
 app.environment = "dev"
 
 ; The base URL of the application (for example: https://domain.com/app)
-app.base_url = "http://localhost/dynart-micro"
+app.base_url = "http://localhost/my-app"
 
 ; The root path of the application (for example: /var/www/domain.com)
 app.root_path = "."
