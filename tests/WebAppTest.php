@@ -15,9 +15,12 @@ use Dynart\Micro\Session;
 use Dynart\Micro\View;
 use Dynart\Micro\Middleware;
 use Dynart\Micro\MicroException;
+use Dynart\Micro\Middleware\AnnotationProcessor;
+use Dynart\Micro\Annotation\RouteAnnotation;
 
 class TestWebApp extends WebApp {
     private $finished = false;
+    private $errorCode = -1;
     public function finish($content = 0) {
         echo $content;
         $this->finished = true;
@@ -27,6 +30,16 @@ class TestWebApp extends WebApp {
     }
     protected function isCli() {
         return false;
+    }
+    public function errorCode() {
+        return $this->errorCode;
+    }
+    public function sendError(int $code, $content = '') {
+        parent::sendError($code, $content);
+        $this->errorCode = $code;
+    }
+    public function hasMiddleware($middleware) {
+        return in_array($middleware, $this->middlewares);
     }
 }
 
@@ -86,6 +99,10 @@ class TestWebAppInitExceptionWithLogger extends TestWebApp {
         parent::__construct($configPaths);
         Micro::add(Logger::class, InitExceptionLogger::class);
     }
+}
+
+class TestWebAppSendError extends TestWebApp {
+
 }
 
 class TestMiddleware implements Middleware {
@@ -229,18 +246,18 @@ final class WebAppTest extends TestCase
         $webApp->fullInit();
         $this->assertInstanceOf(WebApp::class, $webApp);
     }
-/*
-    public function testHandleExceptionOnFullInit() {
-        $webApp = new TestWebAppInitException([]);
-        ob_start();
-        $webApp->fullInit();
-        $content = ob_get_clean();
-        $this->assertEquals('1', $content);
+
+    public function testSendError404() {
+        $this->setUpWebAppForProcess();
+        $this->webApp->fullProcess();
+        $this->assertEquals(404, $this->webApp->errorCode());
     }
 
-    public function testError404() {
+    public function testUseRouteAnnotations() {
         $this->setUpWebAppForProcess();
-        $content = $this->fetchWebAppOutput();
-        $this->assertEquals('1', $content);
-    }*/
+        $this->webApp->useRouteAnnotations();
+        $this->assertTrue(Micro::hasInterface(AnnotationProcessor::class));
+        $this->assertTrue(Micro::hasInterface(RouteAnnotation::class));
+        $this->assertTrue($this->webApp->hasMiddleware(AnnotationProcessor::class));
+    }
 }

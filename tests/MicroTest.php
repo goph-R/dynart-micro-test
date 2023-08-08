@@ -135,4 +135,22 @@ final class MicroTest extends TestCase
         Micro::add(TestDependency1::class);
         Micro::get(TestDependency1::class);
     }
+
+    public function testIsMicroCallable() {
+        $this->assertTrue(Micro::isMicroCallable([TestClass1::class, 'someMethod']));
+        $this->assertFalse(Micro::isMicroCallable(function() {}));
+        $this->assertFalse(Micro::isMicroCallable([$this, 'testIsMicroCallable']));
+    }
+
+    public function testGetCallableReturnsWithACreatedInstanceIfItIsAMicroCallable() {
+        Micro::add(TestClass1::class);
+        $testInstance = Micro::get(TestClass1::class);
+        $callable = Micro::getCallable([TestClass1::class, 'someMethod']);
+        $this->assertEquals($callable[0], $testInstance);
+    }
+
+    public function testGetCallableReturnsWithTheSameIfItIsNotAMicroCallable() {
+        $callable = function() {};
+        $this->assertSame(Micro::getCallable($callable), $callable);
+    }
 }
