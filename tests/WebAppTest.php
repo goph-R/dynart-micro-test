@@ -5,9 +5,9 @@ require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
 use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
+use Dynart\Micro\App;
 use Dynart\Micro\WebApp;
 use Dynart\Micro\Config;
-use Dynart\Micro\Logger;
 use Dynart\Micro\Request;
 use Dynart\Micro\Response;
 use Dynart\Micro\Router;
@@ -84,6 +84,12 @@ class WebAppTestMiddleware implements Middleware {
 
 class TestController {
     public function index() { return 'test'; }
+}
+
+class WebAppProdConfig extends Config {
+    public function get($name, $default = null, $useCache = true) {
+        return $name == App::CONFIG_ENVIRONMENT ? App::PRODUCTION_ENVIRONMENT : parent::get($name, $default, $useCache);
+    }
 }
 
 /**
@@ -167,10 +173,21 @@ final class WebAppTest extends TestCase
     public function testHandleExceptionOnFullProcess() {
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
+
         ob_start();
         $this->webApp->fullProcess();
         $content = ob_get_clean();
         $this->assertTrue(strpos($content, '<h2>Dynart\Micro\MicroException</h2>') !== false);
+    }
+
+    public function testHandleExceptionOnFullProcessOnProduction() {
+        Micro::add(Config::class, WebAppProdConfig::class);
+        $this->setUpWebAppForProcess();
+        Micro::get(Router::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
+        ob_start();
+        $this->webApp->fullProcess();
+        $content = ob_get_clean();
+        $this->assertEmpty($content);
     }
 
     public function testHandleExceptionOnFullInitWithRouter() {

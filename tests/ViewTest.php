@@ -75,7 +75,7 @@ final class ViewTest extends TestCase
         $this->assertEquals($testContent.$testContent, $this->view->block('test_block'));
     }
 
-    public function testFetchGivenNonExistingViewPathShouldThrowAppExcpetion() {
+    public function testFetchGivenNonExistingViewPathShouldThrowMicroException() {
         $this->expectException(\Dynart\Micro\MicroException::class);
         $this->view->fetch('non_existing');
     }
