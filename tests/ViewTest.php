@@ -15,7 +15,7 @@ final class ViewTest extends TestCase
 
     protected function setUp(): void {
         $config = new Config();
-        $config->load(dirname(dirname(__FILE__)).'/configs/view.config.ini');
+        $config->load(dirname(dirname(__FILE__)).'/configs/view.ini');
         $this->view = new View($config);
     }
 

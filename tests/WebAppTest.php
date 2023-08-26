@@ -97,7 +97,7 @@ final class WebAppTest extends TestCase
     protected function setUp(): void {
         ResettableMicro::reset();
         $basePath = dirname(dirname(__FILE__));
-        $this->webApp = new TestWebApp([$basePath.'/configs/webapp.config.ini', $basePath.'/configs/webapp.config-extend.ini']);
+        $this->webApp = new TestWebApp([$basePath.'/configs/app.ini', $basePath.'/configs/app-extend.ini', $basePath.'/configs/webapp.error-pages.ini']);
     }
 
     private function setUpWebAppForProcess() {
@@ -174,7 +174,7 @@ final class WebAppTest extends TestCase
     }
 
     public function testHandleExceptionOnFullInitWithRouter() {
-        $webApp = new TestWebAppInitExceptionWithRouter([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        $webApp = new TestWebAppInitExceptionWithRouter([dirname(dirname(__FILE__)).'/configs/app.ini']);
         ob_start();
         $webApp->fullInit();
         $content = ob_get_clean();
@@ -182,7 +182,7 @@ final class WebAppTest extends TestCase
     }
 
     public function testHandleExceptionOnFullInitWithRouterWithCliAndWithNoErrorPages() { // just for coverage
-        $webApp = new TestWebAppWithNoErrorPage([dirname(dirname(__FILE__)).'/configs/webapp.config.no-error-pages.ini']);
+        $webApp = new TestWebAppWithNoErrorPage([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $webApp->fullInit();
         $this->assertInstanceOf(WebApp::class, $webApp);
     }

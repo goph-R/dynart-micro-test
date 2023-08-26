@@ -107,7 +107,7 @@ final class AppTest extends TestCase
     protected function setUp(): void {
         ResettableMicro::reset();
         $basePath = dirname(dirname(__FILE__));
-        $this->app = new TestApp([$basePath.'/configs/webapp.config.ini', $basePath.'/configs/webapp.config-extend.ini']);
+        $this->app = new TestApp([$basePath.'/configs/app.ini', $basePath.'/configs/app-extend.ini']);
     }
 
     public function testFullInitLoadsConfigs() {
@@ -127,18 +127,18 @@ final class AppTest extends TestCase
 
     public function testHandleExceptionOnFullInitWithConfig() {
         $this->expectException(MicroException::class);
-        $app = new TestAppInitExceptionWithConfig([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        $app = new TestAppInitExceptionWithConfig([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $app->fullInit();
     }
 
     public function testHandleExceptionOnFullInitWithLogger() {
         $this->expectException(MicroException::class);
-        $app = new TestAppInitExceptionWithLogger([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        $app = new TestAppInitExceptionWithLogger([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $app->fullInit();
     }
 
     public function testHandleExceptionOnFullProcess() {
-        $app = new TestAppProcessException([dirname(dirname(__FILE__)).'/configs/webapp.config.ini']);
+        $app = new TestAppProcessException([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $app->fullInit();
         ob_start();
         $app->fullProcess();

@@ -14,7 +14,7 @@ final class TranslationTest extends \PHPUnit\Framework\TestCase
 
     private function loadConfig() {
         $this->config = new Config();
-        $this->config->load(dirname(dirname(__FILE__)).'/configs/translation.config.ini');
+        $this->config->load(dirname(dirname(__FILE__)).'/configs/translation.ini');
     }
 
     public function testLocaleWhenMultiLocaleIsSetAndDefaultLocaleIsHu() {
