@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
+use Dynart\Micro\Test\ResettableMicro;
 
 use PHPUnit\Framework\TestCase;
 
@@ -11,7 +12,6 @@ use Dynart\Micro\Logger;
 use Dynart\Micro\Middleware;
 use Dynart\Micro\MicroException;
 
-use Dynart\Micro\Test\ResettableMicro;
 
 class TestApp extends App {
     private $finished = false;

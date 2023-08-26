@@ -1,6 +1,7 @@
 <?php
 
 require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
+use Dynart\Micro\Test\ResettableMicro;
 
 use PHPUnit\Framework\TestCase;
 
@@ -28,42 +29,49 @@ class TestEventListener {
  */
 final class EventServiceTest extends TestCase
 {
+    const EVENT = 'test:event';
+
+    protected function setUp(): void {
+        ResettableMicro::reset();
+    }
+
     public function testSubscribe() {
         $service = new TestEventService();
-        $service->subscribe('event', 'callable');
-        $this->assertArrayHasKey('event', $service->subscriptions);
+        $service->subscribe(self::EVENT, 'callable');
+        $this->assertArrayHasKey(self::EVENT, $service->subscriptions);
     }
 
     public function testSubscribeWithRef() {
         $service = new TestEventService();
-        $callableRef = [];
-        $service->subscribeWithRef('event', $callableRef);
-        $this->assertSame($service->subscriptions['event'][0], $callableRef);
+        $callableRef = 'Something::method';
+        $service->subscribeWithRef(self::EVENT, $callableRef);
+        $this->assertSame($service->subscriptions[self::EVENT][0], $callableRef);
     }
 
     public function testUnsubscribe() {
         $service = new TestEventService();
         $callableRef1 = 'a';
         $callableRef2 = 'b';
-        $service->subscribeWithRef('event', $callableRef1);
-        $service->subscribeWithRef('event', $callableRef2);
+        $service->subscribeWithRef(self::EVENT, $callableRef1);
+        $service->subscribeWithRef(self::EVENT, $callableRef2);
 
-        $this->assertTrue($service->unsubscribe('event', $callableRef1));
-        $this->assertCount(1, $service->subscriptions['event']);
-        $this->assertFalse($service->unsubscribe('event', $callableRef1));
+        $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef1));
+        $this->assertCount(1, $service->subscriptions[self::EVENT]);
+        $this->assertFalse($service->unsubscribe(self::EVENT, $callableRef1));
 
-        $this->assertTrue($service->unsubscribe('event', $callableRef2));
-        $this->assertArrayNotHasKey('event', $service->subscriptions);
-        $this->assertFalse($service->unsubscribe('event', $callableRef1));
+        $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef2));
+        $this->assertArrayNotHasKey(self::EVENT, $service->subscriptions);
+
+        $this->assertFalse($service->unsubscribe(self::EVENT, $callableRef1));
     }
 
     public function testEmit() {
         Micro::add(TestEventListener::class);
         $testEventListener = Micro::get(TestEventListener::class);
         $service = new TestEventService();
-        $service->subscribe('event1', [TestEventListener::class, 'setA']);
-        $service->subscribe('event1', [$testEventListener, 'setB']);
-        $service->emit('event1', [true]);
+        $service->subscribe(self::EVENT, [TestEventListener::class, 'setA']);
+        $service->subscribe(self::EVENT, [$testEventListener, 'setB']);
+        $service->emit(self::EVENT, [true]);
         $this->assertTrue($testEventListener->a);
         $this->assertTrue($testEventListener->b);
     }
