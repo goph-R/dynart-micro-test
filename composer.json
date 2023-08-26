@@ -1,4 +1,19 @@
 {
+    "name": "dynart/micro-test",
+    "description": "Test library for Micro",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Dynart\\Micro\\Entities\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "gopher",
+            "email": "gopher.hu@gmail.com"
+        }
+    ],
     "require-dev": {
         "phpunit/phpunit": "^9.5",
         "dynart/micro": "^0.6.0 || dev-main"

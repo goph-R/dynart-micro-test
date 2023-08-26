@@ -1,6 +1,6 @@
 <?php
 
-require_once 'ResettableMicro.php';
+require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -8,7 +8,9 @@ use Dynart\Micro\Micro;
 use Dynart\Micro\App;
 use Dynart\Micro\MicroException;
 
-class TestApp extends App {
+use Dynart\Micro\Test\ResettableMicro;
+
+class MicroTestApp extends App {
     public function init() {}
     public function process() {}
 }
@@ -67,14 +69,14 @@ final class MicroTest extends TestCase
     }
 
     public function testRunSetsInstance() {
-        $app = new TestApp([]);
+        $app = new MicroTestApp([]);
         Micro::run($app);
         $this->assertEquals($app, Micro::instance());
     }
 
     public function testRunCallTwiceThrowsMicroException() {
         $this->expectException(MicroException::class);
-        $app = new TestApp([]);
+        $app = new MicroTestApp([]);
         Micro::run($app);
         Micro::run($app);
     }

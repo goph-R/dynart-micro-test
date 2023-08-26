@@ -1,5 +1,7 @@
 <?php
 
+namespace Dynart\Micro\Test;
+
 use Dynart\Micro\Micro;
 
 class ResettableMicro extends Micro {
