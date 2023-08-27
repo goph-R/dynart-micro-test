@@ -29,6 +29,7 @@ final class ResponseTest extends TestCase
 
     public function testSend() {
         ob_start();
+        $this->response->setHeader('x-test-header', 'test-value');
         $this->response->send('content');
         $content = ob_end_clean();
         $this->assertEquals('content', $content);
