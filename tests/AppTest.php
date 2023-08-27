@@ -14,16 +14,9 @@ use Dynart\Micro\MicroException;
 
 
 class TestApp extends App {
-    private $finished = false;
+    protected $exitOnFinish = false;
     public function init() {}
     public function process() {}
-    public function finish($content = 0) {
-        echo $content;
-        $this->finished = true;
-    }
-    public function isFinished() {
-        return $this->finished;
-    }
     protected function isCli() {
         return false;
     }
@@ -146,5 +139,12 @@ final class AppTest extends TestCase
         error_log($content);
         $logger = Micro::get(Logger::class);
         $this->assertTrue(strpos($logger->errorMessage(), 'Test exception') !== false);
-    }    
+    }
+
+    public function testFinish() {
+        ob_start();
+        $this->app->finish('test');
+        $content = ob_get_clean();
+        $this->assertEquals('test', $content);
+    }
 }
