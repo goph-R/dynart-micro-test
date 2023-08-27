@@ -27,6 +27,7 @@ final class ConfigTest extends TestCase {
         $config->load(dirname(dirname(__FILE__)) . '/configs/config.ini');
         $this->assertEquals('TEST_ENV=test_env', $config->get('env.in.value'));
         $this->assertEquals('outside', $config->get('env.from.outside'));
+        $this->assertEquals('NON_EXISTING_ENV=', $config->get('env.non_existing_env'));
     }
 
     public function testLoadSecondOverridesFirst() {
