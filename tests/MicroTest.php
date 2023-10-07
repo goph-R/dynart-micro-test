@@ -71,7 +71,7 @@ final class MicroTest extends TestCase
     public function testRunSetsInstance() {
         $app = new MicroTestApp([]);
         Micro::run($app);
-        $this->assertEquals($app, Micro::instance());
+        $this->assertEquals($app, Micro::app());
     }
 
     public function testRunCallTwiceThrowsMicroException() {
