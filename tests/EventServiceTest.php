@@ -48,7 +48,7 @@ final class EventServiceTest extends TestCase
         $this->assertSame($service->subscriptions[self::EVENT][0], $callableRef);
     }
 
-    public function testUnsubscribe() {
+    public function testUnsubscribeRemovesOneElementFromTheSubscriptions() {
         $service = new TestEventService();
         $callableRef1 = 'a';
         $callableRef2 = 'b';
@@ -57,15 +57,32 @@ final class EventServiceTest extends TestCase
 
         $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef1));
         $this->assertCount(1, $service->subscriptions[self::EVENT]);
-        $this->assertFalse($service->unsubscribe(self::EVENT, $callableRef1));
+    }
 
-        $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef2));
-        $this->assertArrayNotHasKey(self::EVENT, $service->subscriptions);
+    public function testUnsubscribeReturnsFalseWhenNoCallableRefFound() {
+        $service = new TestEventService();
+        $callableRef1 = 'a';
+        $callableRef2 = 'b';
+        $service->subscribeWithRef(self::EVENT, $callableRef1);
+        $service->subscribeWithRef(self::EVENT, $callableRef2);
 
+        $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef1));
         $this->assertFalse($service->unsubscribe(self::EVENT, $callableRef1));
     }
 
-    public function testEmit() {
+    public function testUnsubscribeRemovesEventKeyWhenEverySubscriptionRemoved() {
+        $service = new TestEventService();
+        $callableRef1 = 'a';
+        $callableRef2 = 'b';
+        $service->subscribeWithRef(self::EVENT, $callableRef1);
+        $service->subscribeWithRef(self::EVENT, $callableRef2);
+
+        $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef1));
+        $this->assertTrue($service->unsubscribe(self::EVENT, $callableRef2));
+        $this->assertArrayNotHasKey(self::EVENT, $service->subscriptions);
+    }
+
+    public function testEmitCallsEveryListener() {
         Micro::add(TestEventListener::class);
         $testEventListener = Micro::get(TestEventListener::class);
         $service = new TestEventService();
