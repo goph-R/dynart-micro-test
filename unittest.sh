@@ -1,0 +1,1 @@
+php vendor/bin/phpunit --coverage-html reports/coverage-html --stderr

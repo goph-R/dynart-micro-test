@@ -1,0 +1,1 @@
+php phpDocumentor.phar -d /var/www/dynart-micro/src -d /var/www/dynart-micro/views -t docs/api
