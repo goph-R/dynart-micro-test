@@ -17,10 +17,10 @@ class TestApp extends App {
     protected $exitOnFinish = false;
     public function init() {}
     public function process() {}
-    protected function isCli() {
+    protected function isCli(): bool {
         return false;
     }
-    public function hasMiddleware($middleware) {
+    public function hasMiddleware($middleware): bool {
         return in_array($middleware, $this->middlewares);
     }
 }

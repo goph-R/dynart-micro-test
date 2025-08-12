@@ -10,7 +10,7 @@ use Dynart\Micro\Micro;
 
 
 class TestEventService extends EventService {
-    public $subscriptions = [];
+    public array $subscriptions = [];
 }
 
 class TestEventListener {

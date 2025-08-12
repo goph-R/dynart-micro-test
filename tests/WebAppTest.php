@@ -1,6 +1,6 @@
 <?php
 
-require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
+require_once dirname(__FILE__, 2) .'/src/ResettableMicro.php';
 
 use PHPUnit\Framework\TestCase;
 
@@ -21,26 +21,27 @@ use Dynart\Micro\Annotation\RouteAnnotation;
 use Dynart\Micro\Test\ResettableMicro;
 
 class TestWebApp extends WebApp {
-    private $finished = false;
-    private $errorCode = -1;
-    public function finish($content = 0) {
+    private bool $finished = false;
+    private string $errorCode = "";
+    public function finish($content = 0): void
+    {
         echo $content;
         $this->finished = true;
     }
-    public function isFinished() {
+    public function isFinished(): bool {
         return $this->finished;
     }
-    protected function isCli() {
+    protected function isCli(): bool {
         return false;
     }
-    public function errorCode() {
+    public function errorCode(): string {
         return $this->errorCode;
     }
     public function sendError(int $code, $content = '') {
         parent::sendError($code, $content);
         $this->errorCode = $code;
     }
-    public function hasMiddleware($middleware) {
+    public function hasMiddleware($middleware): bool {
         return in_array($middleware, $this->middlewares);
     }
 }
@@ -65,7 +66,7 @@ class TestWebAppWithNoErrorPage extends WebApp {
         parent::__construct($configPaths);
         Micro::add(Router::class, InitExceptionRouter::class);
     }
-    public function finish($content = 0) {}
+    public function finish($content = 0): void {}
 }
 
 class TestWebAppSendError extends TestWebApp {
@@ -87,7 +88,7 @@ class TestController {
 }
 
 class WebAppProdConfig extends Config {
-    public function get($name, $default = null, $useCache = true) {
+    public function get(string $name, mixed $default = null, $useCache = true): mixed {
         return $name == App::CONFIG_ENVIRONMENT ? App::PRODUCTION_ENVIRONMENT : parent::get($name, $default, $useCache);
     }
 }
@@ -97,22 +98,21 @@ class WebAppProdConfig extends Config {
  */
 final class WebAppTest extends TestCase
 {
-    /** @var TestWebApp */
-    private $webApp;
+    private TestWebApp $webApp;
 
     protected function setUp(): void {
         ResettableMicro::reset();
-        $basePath = dirname(dirname(__FILE__));
+        $basePath = dirname(__FILE__, 2);
         $this->webApp = new TestWebApp([$basePath.'/configs/app.ini', $basePath.'/configs/app-extend.ini', $basePath.'/configs/webapp.error-pages.ini']);
     }
 
-    private function setUpWebAppForProcess() {
+    private function setUpWebAppForProcess(): void {
         $_REQUEST['route'] = '/test/route/123';
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $this->webApp->fullInit();
     }
 
-    private function processAndFetchOutput() {
+    private function processAndFetchOutput(): bool|string {
         ob_start();
         $this->webApp->fullProcess();
         return ob_get_clean();
@@ -177,7 +177,7 @@ final class WebAppTest extends TestCase
         ob_start();
         $this->webApp->fullProcess();
         $content = ob_get_clean();
-        $this->assertTrue(strpos($content, '<h2>Dynart\Micro\MicroException</h2>') !== false);
+        $this->assertTrue(str_contains($content, '<h2>Dynart\Micro\MicroException</h2>'));
     }
 
     public function testHandleExceptionOnFullProcessOnProduction() {
@@ -195,13 +195,13 @@ final class WebAppTest extends TestCase
         ob_start();
         $webApp->fullInit();
         $content = ob_get_clean();
-        $this->assertTrue(strpos($content, '<h2>Dynart\Micro\MicroException</h2>') !== false);
+        $this->assertTrue(str_contains($content, '<h2>Dynart\Micro\MicroException</h2>'));
     }
 
-    public function testHandleExceptionOnFullInitWithRouterWithCliAndWithNoErrorPages() { // just for coverage
-        $webApp = new TestWebAppWithNoErrorPage([dirname(dirname(__FILE__)).'/configs/app.ini']);
+    public function testHandleExceptionOnFullInitWithRouterWithCliAndWithNoErrorPages() {
+        $webApp = new TestWebAppWithNoErrorPage([dirname(__FILE__, 2) .'/configs/app.ini']);
         $webApp->fullInit();
-        $this->assertInstanceOf(WebApp::class, $webApp);
+        $this->assertInstanceOf(WebApp::class, $webApp); // just for coverage
     }
 
     public function testSendError404() {
