@@ -13,4 +13,24 @@ final class SessionTest extends TestCase {
         $this->assertEquals('default', $session->get('test', 'default'));
     }
 
+    public function testIdReturnsSessionId() {
+        $session = new Session();
+        $this->assertNotEmpty($session->id());
+        $this->assertEquals(session_id(), $session->id());
+    }
+
+    public function testConstructorStartsSession() {
+        // Session is already started by earlier tests, so status should be active
+        $session = new Session();
+        $this->assertEquals(PHP_SESSION_ACTIVE, session_status());
+    }
+
+    public function testConstructorDoesNotRestartActiveSession() {
+        $session1 = new Session();
+        $id1 = $session1->id();
+        $session2 = new Session();
+        $id2 = $session2->id();
+        $this->assertEquals($id1, $id2);
+    }
+
 }

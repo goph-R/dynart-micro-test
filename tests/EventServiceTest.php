@@ -59,6 +59,12 @@ final class EventServiceTest extends TestCase
         $this->assertCount(1, $service->subscriptions[self::EVENT]);
     }
 
+    public function testUnsubscribeReturnsFalseWhenEventDoesNotExist() {
+        $service = new TestEventService();
+        $callableRef = 'a';
+        $this->assertFalse($service->unsubscribe('nonexistent:event', $callableRef));
+    }
+
     public function testUnsubscribeReturnsFalseWhenNoCallableRefFound() {
         $service = new TestEventService();
         $callableRef1 = 'a';

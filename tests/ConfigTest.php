@@ -68,4 +68,30 @@ final class ConfigTest extends TestCase {
         $this->assertEquals('app_root_path/path', $config->getFullPath('~/path'));
     }
 
+    public function testGetFullPathReturnsPathUnchangedWhenNoTilde() {
+        $config = new Config();
+        $this->assertEquals('/absolute/path', $config->getFullPath('/absolute/path'));
+    }
+
+    public function testClearCacheRemovesCachedValues() {
+        $config = new Config();
+        $config->load(dirname(__FILE__, 2) . '/configs/config.ini');
+        $config->get('integer'); // cache it
+        $this->assertTrue($config->isCached('integer'));
+        $config->clearCache();
+        $this->assertFalse($config->isCached('integer'));
+    }
+
+    public function testClearCacheAllowsRefreshFromConfig() {
+        putenv("cleartest=original");
+        $config = new Config();
+        $this->assertEquals('original', $config->get('cleartest'));
+        putenv("cleartest=updated");
+        // still cached
+        $this->assertEquals('original', $config->get('cleartest'));
+        $config->clearCache();
+        $this->assertEquals('updated', $config->get('cleartest'));
+        putenv("cleartest"); // cleanup
+    }
+
 }
