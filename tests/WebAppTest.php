@@ -15,8 +15,8 @@ use Dynart\Micro\Session;
 use Dynart\Micro\View;
 use Dynart\Micro\Middleware;
 use Dynart\Micro\MicroException;
-use Dynart\Micro\Middleware\AnnotationProcessor;
-use Dynart\Micro\Annotation\RouteAnnotation;
+use Dynart\Micro\Middleware\AttributeProcessor;
+use Dynart\Micro\AttributeHandler\RouteAttributeHandler;
 
 use Dynart\Micro\Test\ResettableMicro;
 
@@ -210,11 +210,11 @@ final class WebAppTest extends TestCase
         $this->assertEquals(404, $this->webApp->errorCode());
     }
 
-    public function testUseRouteAnnotations() {
+    public function testUseRouteAttributes() {
         $this->setUpWebAppForProcess();
-        $this->webApp->useRouteAnnotations();
-        $this->assertTrue(Micro::hasInterface(AnnotationProcessor::class));
-        $this->assertTrue(Micro::hasInterface(RouteAnnotation::class));
-        $this->assertTrue($this->webApp->hasMiddleware(AnnotationProcessor::class));
+        $this->webApp->useRouteAttributes();
+        $this->assertTrue(Micro::hasInterface(AttributeProcessor::class));
+        $this->assertTrue(Micro::hasInterface(RouteAttributeHandler::class));
+        $this->assertTrue($this->webApp->hasMiddleware(AttributeProcessor::class));
     }
 }

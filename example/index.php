@@ -7,6 +7,7 @@ require_once __DIR__ . '/vendor/autoload.php';
 use Dynart\Micro\Micro;
 use Dynart\Micro\WebApp;
 use Dynart\Micro\View;
+use Dynart\Micro\Attribute\Route;
 
 class MyController {
 
@@ -22,9 +23,9 @@ class MyController {
      *
      * Example call: http://localhost/my-app/index.php
      *
-     * @route GET /
      * @return string
      */
+    #[Route('GET', '/')]
     public function index() {
         return $this->view->fetch('index');
     }
@@ -34,11 +35,11 @@ class MyController {
      *
      * Example call: http://localhost/my-app/index.php?route=/example/value1/value2
      *
-     * @route GET /example/?/?
      * @param string $param1 The first path variable
      * @param string $param2 The second path variable
      * @return array
      */
+    #[Route('GET', '/example/?/?')]
     public function example($param1, $param2) {
         return [
             'param1' => $param1,
@@ -55,8 +56,8 @@ class MyApp extends WebApp { // inherit from WebApp for an MVC/REST web applicat
         // register the controller
         Micro::add(MyController::class);
 
-        // use the route annotations on the registered classes
-        $this->useRouteAnnotations();
+        // use the #[Route] attributes on the registered classes
+        $this->useRouteAttributes();
     }
 }
 
