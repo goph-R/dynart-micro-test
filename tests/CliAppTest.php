@@ -16,9 +16,9 @@ use Dynart\Micro\Test\ResettableMicro;
 
 class TestCliApp extends CliApp {
     private bool $finished = false;
-    private $finishContent = null;
+    private mixed $finishContent = null;
 
-    public function finish($content = 0): void {
+    public function finish(string|int $content = 0): void {
         $this->finishContent = $content;
         $this->finished = true;
     }
@@ -33,7 +33,7 @@ class TestCliApp extends CliApp {
 }
 
 class TestCliAppLogger extends Logger {
-    private $errorMessage;
+    private ?string $errorMessage = null;
     public function error($message, array $context = array()) {
         $this->errorMessage = $message;
     }
@@ -85,17 +85,17 @@ final class CliAppTest extends TestCase
         $_SERVER['argc'] = count($args);
     }
 
-    public function testConstructorRegistersCliClasses() {
+    public function testConstructorRegistersCliClasses(): void {
         $this->assertTrue(Micro::hasInterface(CliCommands::class));
         $this->assertTrue(Micro::hasInterface(CliOutput::class));
     }
 
-    public function testInitCreatesCommands() {
+    public function testInitCreatesCommands(): void {
         $this->app->fullInit();
         $this->assertInstanceOf(CliCommands::class, Micro::get(CliCommands::class));
     }
 
-    public function testProcessCallsMatchedCommand() {
+    public function testProcessCallsMatchedCommand(): void {
         $this->setArgv(['script.php', 'hello']);
         $this->app->fullInit();
         $called = false;
@@ -107,7 +107,7 @@ final class CliAppTest extends TestCase
         $this->assertTrue($called);
     }
 
-    public function testProcessPassesParamsToCommand() {
+    public function testProcessPassesParamsToCommand(): void {
         $this->setArgv(['script.php', 'greet', '-name', 'world']);
         $this->app->fullInit();
         $receivedParams = null;
@@ -119,7 +119,7 @@ final class CliAppTest extends TestCase
         $this->assertEquals('world', $receivedParams['name']);
     }
 
-    public function testProcessFinishesWithCommandReturnValue() {
+    public function testProcessFinishesWithCommandReturnValue(): void {
         $this->setArgv(['script.php', 'test']);
         $this->app->fullInit();
         Micro::get(CliCommands::class)->add('test', function() {
@@ -129,14 +129,14 @@ final class CliAppTest extends TestCase
         $this->assertEquals(42, $this->app->finishContent());
     }
 
-    public function testProcessFinishesWithExitCode1ForUnknownCommand() {
+    public function testProcessFinishesWithExitCode1ForUnknownCommand(): void {
         $this->setArgv(['script.php', 'nonexistent']);
         $this->app->fullInit();
         $this->app->fullProcess();
         $this->assertEquals(1, $this->app->finishContent());
     }
 
-    public function testProcessCallsCommandWithNoParamsUsingCallUserFunc() {
+    public function testProcessCallsCommandWithNoParamsUsingCallUserFunc(): void {
         $this->setArgv(['script.php', 'simple']);
         $this->app->fullInit();
         $called = false;
@@ -149,7 +149,7 @@ final class CliAppTest extends TestCase
         $this->assertTrue($this->app->isFinished());
     }
 
-    public function testProcessWithMicroCallable() {
+    public function testProcessWithMicroCallable(): void {
         $this->setArgv(['script.php', 'run']);
         $this->app->fullInit();
         Micro::add(TestCliController::class);
@@ -158,7 +158,7 @@ final class CliAppTest extends TestCase
         $this->assertEquals(0, $this->app->finishContent());
     }
 
-    public function testHandleExceptionFinishesWithExitCode1() {
+    public function testHandleExceptionFinishesWithExitCode1(): void {
         $this->setArgv(['script.php']);
         $app = new TestCliAppWithException([$this->basePath.'/configs/app.ini']);
         $app->fullInit();

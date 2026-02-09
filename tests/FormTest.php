@@ -7,14 +7,14 @@ use Dynart\Micro\Session;
 use Dynart\Micro\Validator;
 
 class AlwaysFailsValidator extends Validator {
-    public function validate($value) {
+    public function validate(mixed $value): bool {
         $this->message = 'Validation failed.';
         return false;
     }
 }
 
 class AlwaysPassesValidator extends Validator {
-    public function validate($value) {
+    public function validate(mixed $value): bool {
         return true;
     }
 }
@@ -24,11 +24,9 @@ class AlwaysPassesValidator extends Validator {
  */
 final class FormTest extends TestCase {
 
-    /** @var Session */
-    private $session;
+    private Session $session;
 
-    /** @var Form */
-    private $form;
+    private Form $form;
 
     protected function setUp(): void {
         $_REQUEST = [];
@@ -43,7 +41,7 @@ final class FormTest extends TestCase {
 
     // --- CSRF ---
 
-    public function testGenerateCsrfAddsCsrfFieldAndSetsSession() {
+    public function testGenerateCsrfAddsCsrfFieldAndSetsSession(): void {
         $this->form->generateCsrf();
         $this->assertArrayHasKey($this->form->csrfName(), $this->form->fields());
         $this->assertEquals(
@@ -52,83 +50,83 @@ final class FormTest extends TestCase {
         );
     }
 
-    public function testGenerateCsrfDoesNothingWhenCsrfDisabled() {
+    public function testGenerateCsrfDoesNothingWhenCsrfDisabled(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->generateCsrf();
         $this->assertArrayNotHasKey('_csrf', $form->fields());
     }
 
-    public function testCsrfSessionName() {
+    public function testCsrfSessionName(): void {
         $this->assertEquals('form.form.csrf', $this->form->csrfSessionName());
     }
 
-    public function testCsrfSessionNameWithCustomFormName() {
+    public function testCsrfSessionNameWithCustomFormName(): void {
         $form = new Form(new Request(), $this->session, 'login');
         $this->assertEquals('form.login.csrf', $form->csrfSessionName());
     }
 
-    public function testCsrfName() {
+    public function testCsrfName(): void {
         $this->assertEquals('_csrf', $this->form->csrfName());
     }
 
-    public function testValidateCsrfReturnsTrueWhenSessionMatchesValue() {
+    public function testValidateCsrfReturnsTrueWhenSessionMatchesValue(): void {
         $this->form->generateCsrf();
         $this->assertTrue($this->form->validateCsrf());
     }
 
-    public function testValidateCsrfReturnsFalseWhenMismatch() {
+    public function testValidateCsrfReturnsFalseWhenMismatch(): void {
         $this->form->generateCsrf();
         $this->form->setValues(['_csrf' => 'wrong-token']);
         $this->assertFalse($this->form->validateCsrf());
     }
 
-    public function testValidateCsrfReturnsTrueWhenCsrfDisabled() {
+    public function testValidateCsrfReturnsTrueWhenCsrfDisabled(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $this->assertTrue($form->validateCsrf());
     }
 
     // --- Name & Fields ---
 
-    public function testName() {
+    public function testName(): void {
         $this->assertEquals('form', $this->form->name());
     }
 
-    public function testNameWithCustomName() {
+    public function testNameWithCustomName(): void {
         $form = new Form(new Request(), $this->session, 'contact');
         $this->assertEquals('contact', $form->name());
     }
 
-    public function testAddFieldsMakesThemRequired() {
+    public function testAddFieldsMakesThemRequired(): void {
         $this->form->addFields(['email' => ['type' => 'text']]);
         $this->assertTrue($this->form->required('email'));
     }
 
-    public function testAddFieldsNotRequired() {
+    public function testAddFieldsNotRequired(): void {
         $this->form->addFields(['notes' => ['type' => 'textarea']], false);
         $this->assertFalse($this->form->required('notes'));
     }
 
-    public function testFieldsReturnsAddedFields() {
+    public function testFieldsReturnsAddedFields(): void {
         $fields = ['name' => ['type' => 'text'], 'email' => ['type' => 'email']];
         $this->form->addFields($fields);
         $this->assertEquals($fields, $this->form->fields());
     }
 
-    public function testSetRequiredTrue() {
+    public function testSetRequiredTrue(): void {
         $this->form->addFields(['name' => ['type' => 'text']], false);
         $this->assertFalse($this->form->required('name'));
         $this->form->setRequired('name', true);
         $this->assertTrue($this->form->required('name'));
     }
 
-    public function testSetRequiredFalse() {
+    public function testSetRequiredFalse(): void {
         $this->form->addFields(['name' => ['type' => 'text']]);
         $this->assertTrue($this->form->required('name'));
         $this->form->setRequired('name', false);
         $this->assertFalse($this->form->required('name'));
     }
 
-    public function testSetRequiredTrueDoesNotDuplicate() {
+    public function testSetRequiredTrueDoesNotDuplicate(): void {
         $this->form->addFields(['name' => ['type' => 'text']]);
         $this->form->setRequired('name', true);
         $this->assertTrue($this->form->required('name'));
@@ -136,28 +134,28 @@ final class FormTest extends TestCase {
 
     // --- Values ---
 
-    public function testSetValuesAndValue() {
+    public function testSetValuesAndValue(): void {
         $this->form->setValues(['name' => 'Joe']);
         $this->assertEquals('Joe', $this->form->value('name'));
     }
 
-    public function testValueReturnsNullForNonexistentField() {
+    public function testValueReturnsNullForNonexistentField(): void {
         $this->assertNull($this->form->value('missing'));
     }
 
-    public function testValueWithEscape() {
+    public function testValueWithEscape(): void {
         $this->form->setValues(['name' => '<script>alert("xss")</script>']);
         $escaped = $this->form->value('name', true);
         $this->assertEquals('&lt;script&gt;alert(&quot;xss&quot;)&lt;/script&gt;', $escaped);
     }
 
-    public function testValues() {
+    public function testValues(): void {
         $values = ['name' => 'Joe', 'email' => 'joe@test.com'];
         $this->form->setValues($values);
         $this->assertEquals($values, $this->form->values());
     }
 
-    public function testAddValues() {
+    public function testAddValues(): void {
         $this->form->setValues(['name' => 'Joe']);
         $this->form->addValues(['email' => 'joe@test.com']);
         $this->assertEquals(['name' => 'Joe', 'email' => 'joe@test.com'], $this->form->values());
@@ -165,7 +163,7 @@ final class FormTest extends TestCase {
 
     // --- Binding ---
 
-    public function testBindWithFormName() {
+    public function testBindWithFormName(): void {
         $_REQUEST['form'] = ['name' => 'Joe', 'email' => 'joe@test.com'];
         $form = new Form(new Request(), $this->session);
         $form->addFields(['name' => ['type' => 'text'], 'email' => ['type' => 'email']]);
@@ -174,7 +172,7 @@ final class FormTest extends TestCase {
         $this->assertEquals('joe@test.com', $form->value('email'));
     }
 
-    public function testBindWithoutFormName() {
+    public function testBindWithoutFormName(): void {
         $_REQUEST['name'] = 'Joe';
         $_REQUEST['email'] = 'joe@test.com';
         $form = new Form(new Request(), $this->session, '', false);
@@ -186,14 +184,14 @@ final class FormTest extends TestCase {
 
     // --- Validation ---
 
-    public function testValidateReturnsTrueWhenAllRequiredFieldsFilled() {
+    public function testValidateReturnsTrueWhenAllRequiredFieldsFilled(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['name' => ['type' => 'text']]);
         $form->setValues(['name' => 'Joe']);
         $this->assertTrue($form->validate());
     }
 
-    public function testValidateReturnsFalseWhenRequiredFieldEmpty() {
+    public function testValidateReturnsFalseWhenRequiredFieldEmpty(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['name' => ['type' => 'text']]);
         $form->setValues(['name' => '']);
@@ -201,7 +199,7 @@ final class FormTest extends TestCase {
         $this->assertEquals('Required.', $form->error('name'));
     }
 
-    public function testValidateRunsValidators() {
+    public function testValidateRunsValidators(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['email' => ['type' => 'email']]);
         $form->setValues(['email' => 'invalid']);
@@ -210,7 +208,7 @@ final class FormTest extends TestCase {
         $this->assertEquals('Validation failed.', $form->error('email'));
     }
 
-    public function testValidateSkipsValidatorsWhenFieldAlreadyHasError() {
+    public function testValidateSkipsValidatorsWhenFieldAlreadyHasError(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['email' => ['type' => 'email']]);
         $form->setValues(['email' => '']);
@@ -220,7 +218,7 @@ final class FormTest extends TestCase {
         $this->assertEquals('Required.', $form->error('email'));
     }
 
-    public function testValidateSkipsValidatorsForOptionalEmptyField() {
+    public function testValidateSkipsValidatorsForOptionalEmptyField(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['notes' => ['type' => 'textarea']], false);
         $form->setValues(['notes' => '']);
@@ -228,7 +226,7 @@ final class FormTest extends TestCase {
         $this->assertTrue($form->validate());
     }
 
-    public function testValidateStopsAtFirstFailedValidatorForField() {
+    public function testValidateStopsAtFirstFailedValidatorForField(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['email' => ['type' => 'email']]);
         $form->setValues(['email' => 'test']);
@@ -240,7 +238,7 @@ final class FormTest extends TestCase {
         $this->assertEquals('Validation failed.', $form->error('email'));
     }
 
-    public function testValidateCsrfFailureReturnsInvalid() {
+    public function testValidateCsrfFailureReturnsInvalid(): void {
         $this->form->generateCsrf();
         $this->form->setValues(['_csrf' => 'bad-token']);
         $this->form->addFields(['name' => ['type' => 'text']], false);
@@ -249,11 +247,11 @@ final class FormTest extends TestCase {
 
     // --- Errors ---
 
-    public function testErrorReturnsNullWhenNoError() {
+    public function testErrorReturnsNullWhenNoError(): void {
         $this->assertNull($this->form->error('name'));
     }
 
-    public function testAddErrorMakesValidateFail() {
+    public function testAddErrorMakesValidateFail(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addError('Something went wrong.');
         $this->assertFalse($form->validate());
@@ -261,7 +259,7 @@ final class FormTest extends TestCase {
 
     // --- Validators ---
 
-    public function testAddValidatorSetsFormOnValidator() {
+    public function testAddValidatorSetsFormOnValidator(): void {
         $validator = new AlwaysPassesValidator();
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['name' => ['type' => 'text']]);
@@ -271,14 +269,14 @@ final class FormTest extends TestCase {
 
     // --- Process ---
 
-    public function testProcessReturnsFalseWhenHttpMethodDoesNotMatch() {
+    public function testProcessReturnsFalseWhenHttpMethodDoesNotMatch(): void {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['name' => ['type' => 'text']]);
         $this->assertFalse($form->process('POST'));
     }
 
-    public function testProcessBindsAndValidatesWhenHttpMethodMatches() {
+    public function testProcessBindsAndValidatesWhenHttpMethodMatches(): void {
         $_REQUEST['form'] = ['name' => 'Joe'];
         $_SERVER['REQUEST_METHOD'] = 'POST';
         $form = new Form(new Request(), $this->session, 'form', false);
@@ -287,7 +285,7 @@ final class FormTest extends TestCase {
         $this->assertEquals('Joe', $form->value('name'));
     }
 
-    public function testProcessGeneratesCsrf() {
+    public function testProcessGeneratesCsrf(): void {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $form = new Form(new Request(), $this->session);
         $form->addFields(['name' => ['type' => 'text']]);

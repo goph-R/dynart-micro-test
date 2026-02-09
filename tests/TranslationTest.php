@@ -9,28 +9,27 @@ use Dynart\Micro\App;
  */
 final class TranslationTest extends \PHPUnit\Framework\TestCase
 {
-    /** @var \Dynart\Micro\Config&\PHPUnit\Framework\MockObject\MockObject $config */
-    private $config;
+    private Config $config;
 
-    private function loadConfig() {
+    private function loadConfig(): void {
         $this->config = new Config();
         $this->config->load(dirname(dirname(__FILE__)).'/configs/translation.ini');
     }
 
-    public function testLocaleWhenMultiLocaleIsSetAndDefaultLocaleIsHu() {
+    public function testLocaleWhenMultiLocaleIsSetAndDefaultLocaleIsHu(): void {
         $this->loadConfig();
         $translation = new Translation($this->config);
         $this->assertEquals('hu', $translation->locale());
     }
 
-    public function testGetWhenMultiLocaleIsSetAndLocaleIsDefaultAndTheTextHasVariable() {
+    public function testGetWhenMultiLocaleIsSetAndLocaleIsDefaultAndTheTextHasVariable(): void {
         $this->loadConfig();
         $translation = new Translation($this->config);
         $translation->add('test', '~/translations');
         $this->assertEquals('Szia Joe!', $translation->get('test:welcome', ['name' => 'Joe']));
     }
 
-    public function testGetWhenMultiLocaleIsSetAndLocaleIsEnAndTheTextHasVariable() {
+    public function testGetWhenMultiLocaleIsSetAndLocaleIsEnAndTheTextHasVariable(): void {
         $this->loadConfig();
         $translation = new Translation($this->config);
         $translation->add('test', '~/translations');
@@ -38,19 +37,19 @@ final class TranslationTest extends \PHPUnit\Framework\TestCase
         $this->assertEquals('Hi Joe!', $translation->get('test:welcome', ['name' => 'Joe']));
     }
 
-    public function testGetWhenTranslationNamespaceDoesntExist() {
+    public function testGetWhenTranslationNamespaceDoesntExist(): void {
         $this->loadConfig();
         $translation = new Translation($this->config);
         $this->assertEquals('#test:welcome#', $translation->get('test:welcome'));
     }
 
-    public function testAllLocales() { // coverage
+    public function testAllLocales(): void { // coverage
         $this->loadConfig();
         $translation = new Translation($this->config);
         $this->assertEquals(['hu', 'en'], $translation->allLocales());
     }
 
-    public function testHasMultiLocale() {
+    public function testHasMultiLocale(): void {
         $this->loadConfig();
         $translation = new Translation($this->config);
         $this->assertTrue($translation->hasMultiLocales());

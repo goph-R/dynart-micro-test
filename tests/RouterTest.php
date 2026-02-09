@@ -40,7 +40,7 @@ final class RouterTest extends TestCase
             ->getMock();
     }
 
-    private function mockConfigGetWithNoRewrite() {
+    private function mockConfigGetWithNoRewrite(): void {
         $this->config->method('get')
             ->will($this->returnValueMap([
                 [App::CONFIG_BASE_URL, null, true, 'https://test.com'],
@@ -50,7 +50,7 @@ final class RouterTest extends TestCase
             ]));
     }
 
-    private function mockConfigGetWithRewrite() {
+    private function mockConfigGetWithRewrite(): void {
         $this->config->method('get')
             ->will($this->returnValueMap([
                 [App::CONFIG_BASE_URL, null, true, 'https://test.com'],
@@ -60,22 +60,22 @@ final class RouterTest extends TestCase
             ]));
     }
 
-    private function mockRequestGetWithTestRoute() {
+    private function mockRequestGetWithTestRoute(): void {
         $this->request->method('httpMethod')->will($this->returnValue('GET'));
         $this->request->method('get')->will($this->returnValue('/test/route'));
     }
 
-    private function mockRequestGetWithTestRouteWithParameter() {
+    private function mockRequestGetWithTestRouteWithParameter(): void {
         $this->request->method('httpMethod')->will($this->returnValue('GET'));
         $this->request->method('get')->will($this->returnValue('/test/route/123'));
     }
 
-    private function mockRequestGetWithPrefixVariablesAndTestRoute() {
+    private function mockRequestGetWithPrefixVariablesAndTestRoute(): void {
         $this->request->method('httpMethod')->will($this->returnValue('GET'));
         $this->request->method('get')->will($this->returnValue('/pv1/pv2/test/route/v1'));
     }
 
-    private function mockRequestGetWithPrefixVariablesAndHomeRoute() {
+    private function mockRequestGetWithPrefixVariablesAndHomeRoute(): void {
         $this->request->method('httpMethod')->will($this->returnValue('GET'));
         $this->request->method('get')->will($this->returnValue('/'));
     }
@@ -88,7 +88,7 @@ final class RouterTest extends TestCase
         return [$router, $segmentIndex1, $segmentIndex2];
     }
 
-    public function testUrlWithNoRewriteAndHttpQueryParameters() {
+    public function testUrlWithNoRewriteAndHttpQueryParameters(): void {
         $this->mockConfigGetWithNoRewrite();
         $this->mockRequestGetWithTestRoute();
         $router = new Router($this->config, $this->request);
@@ -98,7 +98,7 @@ final class RouterTest extends TestCase
         );
     }
 
-    public function testUrlWithRewriteAndHttpQueryParameters() {
+    public function testUrlWithRewriteAndHttpQueryParameters(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithTestRoute();
         $router = new Router($this->config, $this->request);
@@ -108,7 +108,7 @@ final class RouterTest extends TestCase
         );
     }
 
-    public function testCurrentSegment() {
+    public function testCurrentSegment(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithTestRoute();
         $router = new Router($this->config, $this->request);
@@ -116,7 +116,7 @@ final class RouterTest extends TestCase
         $this->assertEquals('route', $router->currentSegment(1));
     }
 
-    public function testAddPrefixVariableWhenTwoAddedThenUrlShouldReturnWithThoseAtTheBeginning() {
+    public function testAddPrefixVariableWhenTwoAddedThenUrlShouldReturnWithThoseAtTheBeginning(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithTestRoute();
         list($router, $segmentIndex1, $segmentIndex2) = $this->createRequestWithPrefixVariables();
@@ -125,7 +125,7 @@ final class RouterTest extends TestCase
         $this->assertEquals('https://test.com/prefix1/prefix2/test/route', $router->url('/test/route'));
     }
 
-    public function testMatchCurrentRouteWithPrefixVariablesAndAPathParameter() {
+    public function testMatchCurrentRouteWithPrefixVariablesAndAPathParameter(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithPrefixVariablesAndTestRoute();
         list($router, $segmentIndex1, $segmentIndex2) = $this->createRequestWithPrefixVariables();
@@ -135,7 +135,7 @@ final class RouterTest extends TestCase
         $this->assertEquals([$callable, ['v1']], $router->matchCurrentRoute());
     }
 
-    public function testMatchCurrentRouteWithHomeRouteWithPrefixVariables() {
+    public function testMatchCurrentRouteWithHomeRouteWithPrefixVariables(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithPrefixVariablesAndHomeRoute();
         list($router, $segmentIndex1, $segmentIndex2) = $this->createRequestWithPrefixVariables();
@@ -145,7 +145,7 @@ final class RouterTest extends TestCase
         $this->assertEquals([$callable, []], $router->matchCurrentRoute());
     }
 
-    public function testMatchCurrentRouteReturnsNotFound() {
+    public function testMatchCurrentRouteReturnsNotFound(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithTestRouteWithParameter();
         $router = new Router($this->config, $this->request);
@@ -155,7 +155,7 @@ final class RouterTest extends TestCase
         $this->assertEquals(Router::ROUTE_NOT_FOUND, $router->matchCurrentRoute());
     }
 
-    public function testAddRouteWithBothMethod() {
+    public function testAddRouteWithBothMethod(): void {
         $this->mockConfigGetWithRewrite();
         $this->mockRequestGetWithTestRoute();
         $router = new Router($this->config, $this->request);

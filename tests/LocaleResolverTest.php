@@ -45,7 +45,7 @@ final class LocaleResolverTest extends TestCase
         return $request;
     }
 
-    public function testDoesNothingWhenSingleLocale() {
+    public function testDoesNothingWhenSingleLocale(): void {
         $config = $this->createConfig(['en'], 'en');
         $request = $this->createRequest();
         $router = $this->createRouter($config, $request);
@@ -58,7 +58,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertEmpty($router->prefixVariables());
     }
 
-    public function testAddsPrefixVariableWhenMultiLocale() {
+    public function testAddsPrefixVariableWhenMultiLocale(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/en/test');
         $router = $this->createRouter($config, $request);
@@ -70,7 +70,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertCount(1, $router->prefixVariables());
     }
 
-    public function testSetsLocaleViaAcceptLanguageHeader() {
+    public function testSetsLocaleViaAcceptLanguageHeader(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/test', 'hu-HU,hu;q=0.9,en-US;q=0.8');
         $router = $this->createRouter($config, $request);
@@ -82,7 +82,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertEquals('hu', $translation->locale());
     }
 
-    public function testAcceptLanguageIgnoredWhenLocaleNotInAllLocales() {
+    public function testAcceptLanguageIgnoredWhenLocaleNotInAllLocales(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/test', 'fr-FR,fr;q=0.9');
         $router = $this->createRouter($config, $request);
@@ -94,7 +94,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertEquals('en', $translation->locale());
     }
 
-    public function testSetsLocaleViaUrlSegment() {
+    public function testSetsLocaleViaUrlSegment(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/hu/some/path');
         $router = $this->createRouter($config, $request);
@@ -106,7 +106,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertEquals('hu', $translation->locale());
     }
 
-    public function testUrlSegmentOverridesAcceptLanguage() {
+    public function testUrlSegmentOverridesAcceptLanguage(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/hu/test', 'en-US,en;q=0.9');
         $router = $this->createRouter($config, $request);
@@ -118,7 +118,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertEquals('hu', $translation->locale());
     }
 
-    public function testInvalidUrlSegmentDoesNotChangeLocale() {
+    public function testInvalidUrlSegmentDoesNotChangeLocale(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/xx/test');
         $router = $this->createRouter($config, $request);
@@ -130,7 +130,7 @@ final class LocaleResolverTest extends TestCase
         $this->assertEquals('en', $translation->locale());
     }
 
-    public function testNoAcceptLanguageHeaderKeepsDefault() {
+    public function testNoAcceptLanguageHeaderKeepsDefault(): void {
         $config = $this->createConfig(['en', 'hu'], 'en');
         $request = $this->createRequest('/test', null);
         $router = $this->createRouter($config, $request);

@@ -23,7 +23,7 @@ use Dynart\Micro\Test\ResettableMicro;
 class TestWebApp extends WebApp {
     private bool $finished = false;
     private string $errorCode = "";
-    public function finish($content = 0): void
+    public function finish(string|int $content = 0): void
     {
         echo $content;
         $this->finished = true;
@@ -37,7 +37,7 @@ class TestWebApp extends WebApp {
     public function errorCode(): string {
         return $this->errorCode;
     }
-    public function sendError(int $code, $content = '') {
+    public function sendError(int $code, string $content = ''): void {
         parent::sendError($code, $content);
         $this->errorCode = $code;
     }
@@ -66,7 +66,7 @@ class TestWebAppWithNoErrorPage extends WebApp {
         parent::__construct($configPaths);
         Micro::add(Router::class, InitExceptionRouter::class);
     }
-    public function finish($content = 0): void {}
+    public function finish(string|int $content = 0): void {}
 }
 
 class TestWebAppSendError extends TestWebApp {
@@ -74,8 +74,8 @@ class TestWebAppSendError extends TestWebApp {
 }
 
 class WebAppTestMiddleware implements Middleware {
-    private $didRun = false;
-    public function run() {
+    private bool $didRun = false;
+    public function run(): void {
         $this->didRun = true;
     }
     public function didRun() {
@@ -118,7 +118,7 @@ final class WebAppTest extends TestCase
         return ob_get_clean();
     }
 
-    public function testConstructorShouldAddBaseWebRelatedClasses() {
+    public function testConstructorShouldAddBaseWebRelatedClasses(): void {
         $this->assertTrue(Micro::hasInterface(Request::class));
         $this->assertTrue(Micro::hasInterface(Response::class));
         $this->assertTrue(Micro::hasInterface(Router::class));
@@ -126,7 +126,7 @@ final class WebAppTest extends TestCase
         $this->assertTrue(Micro::hasInterface(View::class));
     }
 
-    public function testProcessCallsRouteWithParameterOutputsString() {
+    public function testProcessCallsRouteWithParameterOutputsString(): void {
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { return $value; });
         $content = $this->processAndFetchOutput();
@@ -134,7 +134,7 @@ final class WebAppTest extends TestCase
         $this->assertEquals('123', $content);
     }
 
-    public function testProcessCallsRouteWithParameterOutputsArrayAsJsonString() {
+    public function testProcessCallsRouteWithParameterOutputsArrayAsJsonString(): void {
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { return ['value' => $value]; });
         $content = $this->processAndFetchOutput();
@@ -142,7 +142,7 @@ final class WebAppTest extends TestCase
         $this->assertEquals('{"value":"123"}', $content);
     }
 
-    public function testProcessCallsRouteWithClassAndMethodName() {
+    public function testProcessCallsRouteWithClassAndMethodName(): void {
         $this->setUpWebAppForProcess();
         Micro::add(TestController::class);
         Micro::get(Router::class)->add('/test/route/?', [TestController::class, 'index']);
@@ -150,7 +150,7 @@ final class WebAppTest extends TestCase
         $this->assertEquals('test', $content);
     }
 
-    public function testRedirectClearsHeadersSetsOnlyLocationSendsNoContentAndFinishes() {
+    public function testRedirectClearsHeadersSetsOnlyLocationSendsNoContentAndFinishes(): void {
         $this->webApp->init();
         $response = Micro::get(Response::class);
         $response->setHeader('remove', 'this');
@@ -163,14 +163,14 @@ final class WebAppTest extends TestCase
         $this->assertTrue($this->webApp->isFinished());
     }
 
-    public function testRedirectWithFullUrl() {
+    public function testRedirectWithFullUrl(): void {
         $this->webApp->init();
         $response = Micro::get(Response::class);
         $this->webApp->redirect('https://somewhere.com');
         $this->assertEquals('https://somewhere.com', $response->header('Location'));
     }
 
-    public function testHandleExceptionOnFullProcess() {
+    public function testHandleExceptionOnFullProcess(): void {
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
 
@@ -180,7 +180,7 @@ final class WebAppTest extends TestCase
         $this->assertTrue(str_contains($content, '<h2>Dynart\Micro\MicroException</h2>'));
     }
 
-    public function testHandleExceptionOnFullProcessOnProduction() {
+    public function testHandleExceptionOnFullProcessOnProduction(): void {
         Micro::add(Config::class, WebAppProdConfig::class);
         $this->setUpWebAppForProcess();
         Micro::get(Router::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
@@ -190,7 +190,7 @@ final class WebAppTest extends TestCase
         $this->assertEmpty($content);
     }
 
-    public function testHandleExceptionOnFullInitWithRouter() {
+    public function testHandleExceptionOnFullInitWithRouter(): void {
         $webApp = new TestWebAppInitExceptionWithRouter([dirname(dirname(__FILE__)).'/configs/app.ini']);
         ob_start();
         $webApp->fullInit();
@@ -198,19 +198,19 @@ final class WebAppTest extends TestCase
         $this->assertTrue(str_contains($content, '<h2>Dynart\Micro\MicroException</h2>'));
     }
 
-    public function testHandleExceptionOnFullInitWithRouterWithCliAndWithNoErrorPages() {
+    public function testHandleExceptionOnFullInitWithRouterWithCliAndWithNoErrorPages(): void {
         $webApp = new TestWebAppWithNoErrorPage([dirname(__FILE__, 2) .'/configs/app.ini']);
         $webApp->fullInit();
         $this->assertInstanceOf(WebApp::class, $webApp); // just for coverage
     }
 
-    public function testSendError404() {
+    public function testSendError404(): void {
         $this->setUpWebAppForProcess();
         $this->webApp->fullProcess();
         $this->assertEquals(404, $this->webApp->errorCode());
     }
 
-    public function testUseRouteAttributes() {
+    public function testUseRouteAttributes(): void {
         $this->setUpWebAppForProcess();
         $this->webApp->useRouteAttributes();
         $this->assertTrue(Micro::hasInterface(AttributeProcessor::class));

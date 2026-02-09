@@ -14,8 +14,8 @@ class TestEventService extends EventService {
 }
 
 class TestEventListener {
-    public $a = false;
-    public $b = false;
+    public bool $a = false;
+    public bool $b = false;
     public function setA() {
         $this->a = true;
     }
@@ -35,20 +35,20 @@ final class EventServiceTest extends TestCase
         ResettableMicro::reset();
     }
 
-    public function testSubscribe() {
+    public function testSubscribe(): void {
         $service = new TestEventService();
         $service->subscribe(self::EVENT, 'callable');
         $this->assertArrayHasKey(self::EVENT, $service->subscriptions);
     }
 
-    public function testSubscribeWithRef() {
+    public function testSubscribeWithRef(): void {
         $service = new TestEventService();
         $callableRef = 'Something::method';
         $service->subscribeWithRef(self::EVENT, $callableRef);
         $this->assertSame($service->subscriptions[self::EVENT][0], $callableRef);
     }
 
-    public function testUnsubscribeRemovesOneElementFromTheSubscriptions() {
+    public function testUnsubscribeRemovesOneElementFromTheSubscriptions(): void {
         $service = new TestEventService();
         $callableRef1 = 'a';
         $callableRef2 = 'b';
@@ -59,13 +59,13 @@ final class EventServiceTest extends TestCase
         $this->assertCount(1, $service->subscriptions[self::EVENT]);
     }
 
-    public function testUnsubscribeReturnsFalseWhenEventDoesNotExist() {
+    public function testUnsubscribeReturnsFalseWhenEventDoesNotExist(): void {
         $service = new TestEventService();
         $callableRef = 'a';
         $this->assertFalse($service->unsubscribe('nonexistent:event', $callableRef));
     }
 
-    public function testUnsubscribeReturnsFalseWhenNoCallableRefFound() {
+    public function testUnsubscribeReturnsFalseWhenNoCallableRefFound(): void {
         $service = new TestEventService();
         $callableRef1 = 'a';
         $callableRef2 = 'b';
@@ -76,7 +76,7 @@ final class EventServiceTest extends TestCase
         $this->assertFalse($service->unsubscribe(self::EVENT, $callableRef1));
     }
 
-    public function testUnsubscribeRemovesEventKeyWhenEverySubscriptionRemoved() {
+    public function testUnsubscribeRemovesEventKeyWhenEverySubscriptionRemoved(): void {
         $service = new TestEventService();
         $callableRef1 = 'a';
         $callableRef2 = 'b';
@@ -88,7 +88,7 @@ final class EventServiceTest extends TestCase
         $this->assertArrayNotHasKey(self::EVENT, $service->subscriptions);
     }
 
-    public function testEmitCallsEveryListener() {
+    public function testEmitCallsEveryListener(): void {
         Micro::add(TestEventListener::class);
         $testEventListener = Micro::get(TestEventListener::class);
         $service = new TestEventService();

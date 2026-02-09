@@ -6,8 +6,8 @@ use Dynart\Micro\UploadedFile;
 use Dynart\Micro\App;
 
 final class RequestTestApp extends App {
-    public function process() {}
-    public function init() {}
+    public function process(): void {}
+    public function init(): void {}
 }
 
 /**
@@ -15,8 +15,7 @@ final class RequestTestApp extends App {
  */
 final class RequestTest extends TestCase {
 
-    /** @var Request */
-    private $request;
+    private Request $request;
 
     protected function setUp(): void {
         $_SERVER = [];
@@ -28,84 +27,84 @@ final class RequestTest extends TestCase {
         $this->request->setBody('{"test_key": "test_value"}');
     }
 
-    public function testGetReturnsValueFromGlobalRequestArray() {
+    public function testGetReturnsValueFromGlobalRequestArray(): void {
         $_REQUEST['request_test'] = 'test_value';
         $this->assertEquals('test_value', $this->request->get('request_test'));
     }
 
-    public function testGetReturnsDefaultValueWhenKeyNotExistsInTheGlobalRequestArray() {
+    public function testGetReturnsDefaultValueWhenKeyNotExistsInTheGlobalRequestArray(): void {
         $this->assertEquals('default_value', $this->request->get('non_existing_key', 'default_value'));
     }
 
-    public function testCookieReturnsValueFromGlobalCookieArray() {
+    public function testCookieReturnsValueFromGlobalCookieArray(): void {
         $_COOKIE['request_test'] = 'test_value';
         $this->assertEquals('test_value', $this->request->cookie('request_test'));
     }
 
-    public function testCookieReturnsDefaultValueWhenKeyNotExistsInTheGlobalCookieArray() {
+    public function testCookieReturnsDefaultValueWhenKeyNotExistsInTheGlobalCookieArray(): void {
         $this->assertEquals('default_value', $this->request->cookie('non_existing_key', 'default_value'));
     }
 
-    public function testServerReturnsValueFromGlobalServerArray() {
+    public function testServerReturnsValueFromGlobalServerArray(): void {
         $_SERVER['server_test'] = 'test_value';
         $this->assertEquals('test_value', $this->request->server('server_test'));
     }
 
-    public function testServerReturnsDefaultValueWhenKeyNotExistsInTheGlobalServerArray() {
+    public function testServerReturnsDefaultValueWhenKeyNotExistsInTheGlobalServerArray(): void {
         $this->assertEquals('default_value', $this->request->server('non_existing_key', 'default_value'));
     }
 
-    public function testHttpMethodReturnsTheValueFromGlobalServerArray() {
+    public function testHttpMethodReturnsTheValueFromGlobalServerArray(): void {
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $this->assertEquals('GET', $this->request->httpMethod());
     }
 
-    public function testIpGivenRemoteAddrShouldReturnWithIt() {
+    public function testIpGivenRemoteAddrShouldReturnWithIt(): void {
         $_SERVER['REMOTE_ADDR'] = 'remote';
         $this->assertEquals('remote', $this->request->ip());
     }
 
-    public function testIpGivenHttpXForwardedForShouldReturnWithIt() {
+    public function testIpGivenHttpXForwardedForShouldReturnWithIt(): void {
         $_SERVER['HTTP_X_FORWARDED_FOR'] = 'forwarded';
         $this->assertEquals('forwarded', $this->request->ip());
     }
 
-    public function testIpGivenHttpClientIpShouldReturnWithIt() {
+    public function testIpGivenHttpClientIpShouldReturnWithIt(): void {
         $_SERVER['HTTP_CLIENT_IP'] = 'client';
         $this->assertEquals('client', $this->request->ip());
     }
 
-    public function testIpGivenNoIpShouldReturnNull() {
+    public function testIpGivenNoIpShouldReturnNull(): void {
         $this->assertNull($this->request->ip());
     }
 
-    public function testHeaderShouldReturnHeaderValue() {
+    public function testHeaderShouldReturnHeaderValue(): void {
         $this->assertEquals($this->request->header('test_header'), 'test_value');
     }
 
-    public function testHeaderShouldReturnDefaultValueWhenKeyNotExistsInHeaders() {
+    public function testHeaderShouldReturnDefaultValueWhenKeyNotExistsInHeaders(): void {
         $this->assertEquals($this->request->header('non_existing', 'default_value'), 'default_value');
     }
 
-    public function testBodyAsJsonShouldReturnAnAssociativeArrayWhenBodyContainsJsonString() {
+    public function testBodyAsJsonShouldReturnAnAssociativeArrayWhenBodyContainsJsonString(): void {
         $array = $this->request->bodyAsJson();
         $this->assertIsArray($array);
         $this->assertArrayHasKey('test_key', $array);
         $this->assertContains('test_value', $array);
     }
 
-    public function testBodyAsJsonGivenTheBodyContainsInvalidJsonShouldThrowMicroException() {
+    public function testBodyAsJsonGivenTheBodyContainsInvalidJsonShouldThrowMicroException(): void {
         $this->expectException(\Dynart\Micro\MicroException::class);
         $this->request->setBody('{"invalid_json":');
         $this->request->bodyAsJson();
     }
 
-    public function testBodyAsJsonGivenTheBodyIsEmptyShouldReturnNull() {
+    public function testBodyAsJsonGivenTheBodyIsEmptyShouldReturnNull(): void {
         $this->request->setBody('');
         $this->assertNull($this->request->bodyAsJson());
     }
 
-    public function testUploadedFileGivenOneUploadedFileShouldReturnWithOneUploadedFileClass() {
+    public function testUploadedFileGivenOneUploadedFileShouldReturnWithOneUploadedFileClass(): void {
         $_FILES = [
             'test_file' => [
                 'name' => 'test.jpg',
@@ -124,7 +123,7 @@ final class RequestTest extends TestCase {
         $this->assertEquals('image/jpeg', $uploadedFile->type());
     }
 
-    public function testUploadedFileGivenTwoUploadedFileShouldReturnWithAnUploadedFileArrayWithTwoElements() {
+    public function testUploadedFileGivenTwoUploadedFileShouldReturnWithAnUploadedFileArrayWithTwoElements(): void {
         $_FILES = [
             'test_file' => [
                 'name' => ['test1.jpg', 'test2.jpg'],

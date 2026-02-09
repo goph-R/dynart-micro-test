@@ -8,26 +8,25 @@ use Dynart\Micro\Response;
  */
 final class ResponseTest extends TestCase
 {
-    /** @var Response */
-    private $response;
+    private Response $response;
 
     protected function setUp(): void {
         $this->response = new Response();
     }
 
-    public function testSetGetHeader() {
+    public function testSetGetHeader(): void {
         $this->response->setHeader('test', 'value');
         $this->assertEquals('value', $this->response->header('test'));
         $this->assertEquals('default', $this->response->header('non_existing', 'default'));
     }
 
-    public function testClearHeaders() {
+    public function testClearHeaders(): void {
         $this->response->setHeader('test', 'value');
         $this->response->clearHeaders();
         $this->assertNull($this->response->header('test'));
     }
 
-    public function testSend() {
+    public function testSend(): void {
         ob_start();
         $this->response->setHeader('x-test-header', 'test-value');
         $this->response->send('content');

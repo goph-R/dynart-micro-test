@@ -24,27 +24,27 @@ final class CliCommandsTest extends TestCase
         $_SERVER['argc'] = count($args);
     }
 
-    public function testCurrentReturnsNullWhenNoArgv() {
+    public function testCurrentReturnsNullWhenNoArgv(): void {
         $this->setArgv(['script.php']);
         $this->assertNull($this->commands->current());
     }
 
-    public function testCurrentReturnsCommandName() {
+    public function testCurrentReturnsCommandName(): void {
         $this->setArgv(['script.php', 'migrate']);
         $this->assertEquals('migrate', $this->commands->current());
     }
 
-    public function testMatchCurrentReturnsNullForUnknownCommand() {
+    public function testMatchCurrentReturnsNullForUnknownCommand(): void {
         $this->setArgv(['script.php', 'unknown']);
         $this->assertNull($this->commands->matchCurrent());
     }
 
-    public function testMatchCurrentReturnsNullWhenNoArgv() {
+    public function testMatchCurrentReturnsNullWhenNoArgv(): void {
         $this->setArgv(['script.php']);
         $this->assertNull($this->commands->matchCurrent());
     }
 
-    public function testMatchCurrentReturnsCallableWithNoParams() {
+    public function testMatchCurrentReturnsCallableWithNoParams(): void {
         $callable = function() { return 'ok'; };
         $this->commands->add('test', $callable);
         $this->setArgv(['script.php', 'test']);
@@ -55,7 +55,7 @@ final class CliCommandsTest extends TestCase
         $this->assertEmpty($result[1]);
     }
 
-    public function testMatchCurrentParsesNamedParameters() {
+    public function testMatchCurrentParsesNamedParameters(): void {
         $callable = function($params) {};
         $this->commands->add('generate', $callable, ['name', 'type']);
         $this->setArgv(['script.php', 'generate', '-name', 'users', '-type', 'migration']);
@@ -67,7 +67,7 @@ final class CliCommandsTest extends TestCase
         $this->assertEquals('migration', $result[1]['type']);
     }
 
-    public function testMatchCurrentParsesFlags() {
+    public function testMatchCurrentParsesFlags(): void {
         $callable = function($params) {};
         $this->commands->add('build', $callable, [], ['verbose', 'force']);
         $this->setArgv(['script.php', 'build', '-verbose', '-force']);
@@ -78,7 +78,7 @@ final class CliCommandsTest extends TestCase
         $this->assertTrue($result[1]['force']);
     }
 
-    public function testMatchCurrentFlagsDefaultToFalse() {
+    public function testMatchCurrentFlagsDefaultToFalse(): void {
         $callable = function($params) {};
         $this->commands->add('build', $callable, [], ['verbose', 'force']);
         $this->setArgv(['script.php', 'build']);
@@ -89,7 +89,7 @@ final class CliCommandsTest extends TestCase
         $this->assertFalse($result[1]['force']);
     }
 
-    public function testMatchCurrentNamedParamsDefaultToEmpty() {
+    public function testMatchCurrentNamedParamsDefaultToEmpty(): void {
         $callable = function($params) {};
         $this->commands->add('generate', $callable, ['name', 'type']);
         $this->setArgv(['script.php', 'generate']);
@@ -100,7 +100,7 @@ final class CliCommandsTest extends TestCase
         $this->assertEquals('', $result[1]['type']);
     }
 
-    public function testMatchCurrentMixesNamedParamsAndFlags() {
+    public function testMatchCurrentMixesNamedParamsAndFlags(): void {
         $callable = function($params) {};
         $this->commands->add('deploy', $callable, ['env'], ['dry']);
         $this->setArgv(['script.php', 'deploy', '-env', 'production', '-dry']);
@@ -111,7 +111,7 @@ final class CliCommandsTest extends TestCase
         $this->assertTrue($result[1]['dry']);
     }
 
-    public function testMatchCurrentPositionalArguments() {
+    public function testMatchCurrentPositionalArguments(): void {
         $callable = function($params) {};
         $this->commands->add('copy', $callable);
         $this->setArgv(['script.php', 'copy', 'source.txt', 'dest.txt']);
@@ -122,7 +122,7 @@ final class CliCommandsTest extends TestCase
         $this->assertEquals('dest.txt', $result[1][1]);
     }
 
-    public function testMatchCurrentIgnoresUnknownFlags() {
+    public function testMatchCurrentIgnoresUnknownFlags(): void {
         $callable = function($params) {};
         $this->commands->add('run', $callable, ['name'], ['verbose']);
         $this->setArgv(['script.php', 'run', '-unknown', '-name', 'test']);

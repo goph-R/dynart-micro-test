@@ -8,7 +8,7 @@ use Dynart\Micro\Pager;
  */
 final class PagerTest extends TestCase {
 
-    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndDefaultNumberLimit7() {
+    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndDefaultNumberLimit7(): void {
         $pager = new Pager('/', ['page' => 10, 'page_size' => 5], 105);
         //  [hidden]                      [hidden]
         // 1   ...  [8] 9 10 11 12 13 [14]   ...   [21]
@@ -21,7 +21,7 @@ final class PagerTest extends TestCase {
         $this->assertTrue($pager->hasRightHidden());
     }
 
-    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit5() {
+    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit5(): void {
         $pager = new Pager('/', ['page' => 10, 'page_size' => 5], 105, 5);
         //  [hidden]                 [hidden]
         // 1   ...  [9] 10 11 12 [13]  ...   [21]
@@ -32,7 +32,7 @@ final class PagerTest extends TestCase {
         $this->assertTrue($pager->hasRightHidden());
     }
 
-    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit17() {
+    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit17(): void {
         $pager = new Pager('/', ['page' => 10, 'page_size' => 5], 105, 17);
         //   [hidden]                                             [hidden]
         // 1   ...  [3] 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 [19]  ...  [21]
@@ -43,7 +43,7 @@ final class PagerTest extends TestCase {
         $this->assertTrue($pager->hasRightHidden());
     }
 
-    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit19() {
+    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit19(): void {
         $pager = new Pager('/', ['page' => 10, 'page_size' => 5], 105, 19);
         //
         // 1 [2] 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 [20] [21]
@@ -54,7 +54,7 @@ final class PagerTest extends TestCase {
         $this->assertFalse($pager->hasRightHidden());
     }
 
-    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit21() {
+    public function testCalculateStartEndAndHiddenProperlyWith105ItemsAndNumberLimit21(): void {
         $pager = new Pager('/', ['page' => 10, 'page_size' => 5], 105, 21);
         //
         // [1] 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 [21]
@@ -65,51 +65,51 @@ final class PagerTest extends TestCase {
         $this->assertFalse($pager->hasRightHidden());
     }
 
-    public function testCalculateNextPrevProperlyWhenNoPrevNext() {
+    public function testCalculateNextPrevProperlyWhenNoPrevNext(): void {
         $pager = new Pager('/', ['page' => 0, 'page_size' => 5], 3);
         $this->assertFalse($pager->prev());
         $this->assertFalse($pager->next());
     }
 
-    public function testCalculateNextPrevProperlyWhenJustNext() {
+    public function testCalculateNextPrevProperlyWhenJustNext(): void {
         $pager = new Pager('/', ['page' => 0, 'page_size' => 5], 6);
         $this->assertFalse($pager->prev());
         $this->assertTrue($pager->next());
     }
 
-    public function testCalculateNextPrevProperlyWhenJustPrev() {
+    public function testCalculateNextPrevProperlyWhenJustPrev(): void {
         $pager = new Pager('/', ['page' => 1, 'page_size' => 5], 6);
         $this->assertTrue($pager->prev());
         $this->assertFalse($pager->next());
     }
 
-    public function testCalculateNextPrevProperlyWhenBothTrue() {
+    public function testCalculateNextPrevProperlyWhenBothTrue(): void {
         $pager = new Pager('/', ['page' => 1, 'page_size' => 5], 11);
         $this->assertTrue($pager->prev());
         $this->assertTrue($pager->next());
     }
 
-    public function testPageCantBeBiggerThanMax() {
+    public function testPageCantBeBiggerThanMax(): void {
         $pager = new Pager('/', ['page' => 100, 'page_size' => 5], 11);
         $this->assertEquals($pager->max(), $pager->page());
     }
 
-    public function testPageCantBeLesserThanZero() {
+    public function testPageCantBeLesserThanZero(): void {
         $pager = new Pager('/', ['page' => -1, 'page_size' => 5], 11);
         $this->assertEquals(0, $pager->page());
     }
 
-    public function testRouteWasSet() {
+    public function testRouteWasSet(): void {
         $pager = new Pager('/', ['page' => 0, 'page_size' => 5], 11);
         $this->assertEquals('/', $pager->route());
     }
 
-    public function testParamsForPage() {
+    public function testParamsForPage(): void {
         $pager = new Pager('/', ['page' => 0, 'page_size' => 5, 'extra_param' => 1], 11);
         $this->assertEquals(['page' => 1, 'page_size' => 5, 'extra_param' => 1], $pager->paramsForPage(1));
     }
 
-    public function testParams() {
+    public function testParams(): void {
         $pager = new Pager('/', ['page' => 0, 'page_size' => 5, 'extra_param' => 1], 11);
         $this->assertEquals(['page' => 0, 'page_size' => 5, 'extra_param' => 1], $pager->params());
     }

@@ -31,15 +31,15 @@ final class RouteAttributeHandlerTest extends TestCase
         $this->handler = new RouteAttributeHandler($this->router);
     }
 
-    public function testAttributeClassReturnsRouteClass() {
+    public function testAttributeClassReturnsRouteClass(): void {
         $this->assertEquals(Route::class, $this->handler->attributeClass());
     }
 
-    public function testTargetsReturnsMethodOnly() {
+    public function testTargetsReturnsMethodOnly(): void {
         $this->assertEquals([AttributeHandler::TARGET_METHOD], $this->handler->targets());
     }
 
-    public function testHandleAddsRouteToRouter() {
+    public function testHandleAddsRouteToRouter(): void {
         $attribute = new Route('GET', '/users');
         $refMethod = new ReflectionMethod(self::class, 'dummyAction');
         $this->handler->handle('TestController', $refMethod, $attribute);
@@ -50,7 +50,7 @@ final class RouteAttributeHandlerTest extends TestCase
         $this->assertEquals(['TestController', 'dummyAction'], $routes['GET']['/users']);
     }
 
-    public function testHandleAddsPostRoute() {
+    public function testHandleAddsPostRoute(): void {
         $attribute = new Route('POST', '/users/save');
         $refMethod = new ReflectionMethod(self::class, 'dummyAction');
         $this->handler->handle('TestController', $refMethod, $attribute);
@@ -60,7 +60,7 @@ final class RouteAttributeHandlerTest extends TestCase
         $this->assertEquals(['TestController', 'dummyAction'], $routes['POST']['/users/save']);
     }
 
-    public function testHandleAddsBothRoute() {
+    public function testHandleAddsBothRoute(): void {
         $attribute = new Route('BOTH', '/form');
         $refMethod = new ReflectionMethod(self::class, 'dummyAction');
         $this->handler->handle('TestController', $refMethod, $attribute);
@@ -70,7 +70,7 @@ final class RouteAttributeHandlerTest extends TestCase
         $this->assertEquals(['TestController', 'dummyAction'], $routes['POST']['/form']);
     }
 
-    public function testHandleWithWildcardRoute() {
+    public function testHandleWithWildcardRoute(): void {
         $attribute = new Route('GET', '/users/?/posts/?');
         $refMethod = new ReflectionMethod(self::class, 'dummyAction');
         $this->handler->handle('TestController', $refMethod, $attribute);

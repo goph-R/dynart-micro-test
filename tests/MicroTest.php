@@ -11,8 +11,8 @@ use Dynart\Micro\MicroException;
 use Dynart\Micro\Test\ResettableMicro;
 
 class MicroTestApp extends App {
-    public function init() {}
-    public function process() {}
+    public function init(): void {}
+    public function process(): void {}
 }
 
 interface TestInterface {
@@ -24,7 +24,7 @@ class TestClass1 implements TestInterface {
 }
 
 class TestClass2 {
-    private $lazyParam = false;
+    private bool $lazyParam = false;
     public function postConstruct() {
         $this->lazyParam = true;
     }
@@ -68,35 +68,35 @@ final class MicroTest extends TestCase
         ResettableMicro::reset();
     }
 
-    public function testRunSetsInstance() {
+    public function testRunSetsInstance(): void {
         $app = new MicroTestApp([]);
         Micro::run($app);
         $this->assertEquals($app, Micro::app());
     }
 
-    public function testRunCallTwiceThrowsMicroException() {
+    public function testRunCallTwiceThrowsMicroException(): void {
         $this->expectException(MicroException::class);
         $app = new MicroTestApp([]);
         Micro::run($app);
         Micro::run($app);
     }
 
-    public function testAddStoresTheInterfaceAndClass() {
+    public function testAddStoresTheInterfaceAndClass(): void {
         Micro::add(TestInterface::class, TestClass1::class);
         $this->assertTrue(Micro::hasInterface(TestInterface::class));
     }
 
-    public function testAddThrowsMicroExceptionWhenClassDoesNotImplementInterface() {
+    public function testAddThrowsMicroExceptionWhenClassDoesNotImplementInterface(): void {
         $this->expectException(MicroException::class);
         Micro::add(TestInterface::class, TestClass2::class);
     }
 
-    public function testGetClassThrowsMicroExceptionWhenNoInterfaceWasAdded() {
+    public function testGetClassThrowsMicroExceptionWhenNoInterfaceWasAdded(): void {
         $this->expectException(MicroException::class);
         Micro::getClass(TestInterface::class);
     }
 
-    public function testGetCreatesAnInstanceWithDependencies() {
+    public function testGetCreatesAnInstanceWithDependencies(): void {
         Micro::add(TestInterface::class, TestClass1::class);
         Micro::add(TestClass2::class);
         Micro::add(TestClassWithDependencies::class);
@@ -104,27 +104,27 @@ final class MicroTest extends TestCase
         $this->assertEquals('param1', $testWithDeps->param1());
     }
 
-    public function testGetReturnsAlwaysWithTheSameInstance() {
+    public function testGetReturnsAlwaysWithTheSameInstance(): void {
         Micro::add(TestInterface::class, TestClass1::class);
         $this->assertSame(Micro::get(TestInterface::class), Micro::get(TestInterface::class));
     }
 
-    public function testCreateThrowsMicroExceptionWhenClassDoesNotExist() {
+    public function testCreateThrowsMicroExceptionWhenClassDoesNotExist(): void {
         $this->expectException(MicroException::class);
         Micro::create('\SomethingThatDoesNotExists');
     }
 
-    public function testCreateCallsPostConstruct() {
+    public function testCreateCallsPostConstruct(): void {
         $test2 = Micro::create(TestClass2::class);
         $this->assertTrue($test2->lazyParam());
     }
 
-    public function testInterfacesReturnsWithTheAddedInterfaces() {
+    public function testInterfacesReturnsWithTheAddedInterfaces(): void {
         Micro::add(TestClass1::class);
         $this->assertContains(TestClass1::class, Micro::interfaces());
     }
 
-    public function testCircularDependency() {
+    public function testCircularDependency(): void {
         $this->expectException(MicroException::class);
         Micro::add(TestDependency3::class);
         Micro::add(TestDependency2::class);
@@ -132,26 +132,26 @@ final class MicroTest extends TestCase
         Micro::get(TestDependency1::class);
     }
 
-    public function testNonExistingDependency() {
+    public function testNonExistingDependency(): void {
         $this->expectException(MicroException::class);
         Micro::add(TestDependency1::class);
         Micro::get(TestDependency1::class);
     }
 
-    public function testIsMicroCallable() {
+    public function testIsMicroCallable(): void {
         $this->assertTrue(Micro::isMicroCallable([TestClass1::class, 'someMethod']));
         $this->assertFalse(Micro::isMicroCallable(function() {}));
         $this->assertFalse(Micro::isMicroCallable([$this, 'testIsMicroCallable']));
     }
 
-    public function testGetCallableReturnsWithACreatedInstanceIfItIsAMicroCallable() {
+    public function testGetCallableReturnsWithACreatedInstanceIfItIsAMicroCallable(): void {
         Micro::add(TestClass1::class);
         $testInstance = Micro::get(TestClass1::class);
         $callable = Micro::getCallable([TestClass1::class, 'someMethod']);
         $this->assertEquals($callable[0], $testInstance);
     }
 
-    public function testGetCallableReturnsWithTheSameIfItIsNotAMicroCallable() {
+    public function testGetCallableReturnsWithTheSameIfItIsNotAMicroCallable(): void {
         $callable = function() {};
         $this->assertSame(Micro::getCallable($callable), $callable);
     }

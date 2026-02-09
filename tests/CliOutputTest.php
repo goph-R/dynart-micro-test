@@ -15,7 +15,7 @@ final class CliOutputTest extends TestCase
         $this->output = new CliOutput();
     }
 
-    public function testWriteWithoutColor() {
+    public function testWriteWithoutColor(): void {
         $this->output->setUseColor(false);
         ob_start();
         $this->output->write('hello');
@@ -23,7 +23,7 @@ final class CliOutputTest extends TestCase
         $this->assertEquals('hello', $content);
     }
 
-    public function testWriteWithColorDisabledDoesNotOutputAnsiCodes() {
+    public function testWriteWithColorDisabledDoesNotOutputAnsiCodes(): void {
         $this->output->setUseColor(false);
         $this->output->setColor(CliOutput::RED);
         ob_start();
@@ -32,7 +32,7 @@ final class CliOutputTest extends TestCase
         $this->assertEquals('hello', $content);
     }
 
-    public function testWriteWithForegroundColor() {
+    public function testWriteWithForegroundColor(): void {
         $this->output->setColor(CliOutput::RED);
         ob_start();
         $this->output->write('error');
@@ -42,7 +42,7 @@ final class CliOutputTest extends TestCase
         $this->assertStringContainsString(CliOutput::COLOR_OFF, $content);
     }
 
-    public function testWriteWithBackgroundColor() {
+    public function testWriteWithBackgroundColor(): void {
         $this->output->setColor(null, CliOutput::DARK_BLUE);
         ob_start();
         $this->output->write('text');
@@ -52,7 +52,7 @@ final class CliOutputTest extends TestCase
         $this->assertStringContainsString(CliOutput::COLOR_OFF, $content);
     }
 
-    public function testWriteWithBothColors() {
+    public function testWriteWithBothColors(): void {
         $this->output->setColor(CliOutput::WHITE, CliOutput::DARK_RED);
         ob_start();
         $this->output->write('alert');
@@ -63,14 +63,14 @@ final class CliOutputTest extends TestCase
         $this->assertStringContainsString(CliOutput::COLOR_OFF, $content);
     }
 
-    public function testWriteWithNoColorSetDoesNotOutputAnsiCodes() {
+    public function testWriteWithNoColorSetDoesNotOutputAnsiCodes(): void {
         ob_start();
         $this->output->write('plain');
         $content = ob_get_clean();
         $this->assertEquals('plain', $content);
     }
 
-    public function testSetColorResetsWithNonIntValue() {
+    public function testSetColorResetsWithNonIntValue(): void {
         $this->output->setColor(CliOutput::RED);
         $this->output->setColor(null);
         ob_start();
@@ -79,7 +79,7 @@ final class CliOutputTest extends TestCase
         $this->assertEquals('text', $content);
     }
 
-    public function testWriteLine() {
+    public function testWriteLine(): void {
         $this->output->setUseColor(false);
         ob_start();
         $this->output->writeLine('line');
@@ -87,7 +87,7 @@ final class CliOutputTest extends TestCase
         $this->assertEquals("line\n", $content);
     }
 
-    public function testDarkColorCodes() {
+    public function testDarkColorCodes(): void {
         $this->output->setColor(CliOutput::BLACK);
         ob_start();
         $this->output->write('x');
@@ -95,7 +95,7 @@ final class CliOutputTest extends TestCase
         $this->assertStringContainsString("\033[30m", $content);
     }
 
-    public function testBrightColorCodes() {
+    public function testBrightColorCodes(): void {
         $this->output->setColor(CliOutput::DARK_GRAY);
         ob_start();
         $this->output->write('x');
@@ -103,7 +103,7 @@ final class CliOutputTest extends TestCase
         $this->assertStringContainsString("\033[90m", $content);
     }
 
-    public function testDarkBackgroundColorCodes() {
+    public function testDarkBackgroundColorCodes(): void {
         $this->output->setColor(null, CliOutput::BLACK);
         ob_start();
         $this->output->write('x');
@@ -111,7 +111,7 @@ final class CliOutputTest extends TestCase
         $this->assertStringContainsString("\033[40m", $content);
     }
 
-    public function testBrightBackgroundColorCodes() {
+    public function testBrightBackgroundColorCodes(): void {
         $this->output->setColor(null, CliOutput::WHITE);
         ob_start();
         $this->output->write('x');

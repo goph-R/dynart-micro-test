@@ -14,9 +14,9 @@ use Dynart\Micro\MicroException;
 
 
 class TestApp extends App {
-    protected $exitOnFinish = false;
-    public function init() {}
-    public function process() {}
+    protected bool $exitOnFinish = false;
+    public function init(): void {}
+    public function process(): void {}
     protected function isCli(): bool {
         return false;
     }
@@ -40,7 +40,7 @@ class InitExceptionLogger extends Logger {
 }
 
 class TestAppInitException extends TestApp {
-    public function init() {
+    public function init(): void {
         throw new MicroException("Exception on init");
     }
 }
@@ -60,7 +60,7 @@ class TestAppInitExceptionWithLogger extends TestApp {
 }
 
 class TestAppLogger extends Logger {
-    private $errorMessage;
+    private ?string $errorMessage = null;
     public function error($message, array $context = array()) {
         $this->errorMessage = $message;
     }
@@ -74,14 +74,14 @@ class TestAppProcessException extends TestApp {
         parent::__construct($configPaths);
         Micro::add(Logger::class, TestAppLogger::class);
     }
-    public function process() {
+    public function process(): void {
         throw new MicroException("Test exception");
     }
 }
 
 class AppTestMiddleware implements Middleware {
-    private $didRun = false;
-    public function run() {
+    private bool $didRun = false;
+    public function run(): void {
         $this->didRun = true;
     }
     public function didRun() {
@@ -94,8 +94,7 @@ class AppTestMiddleware implements Middleware {
  */
 final class AppTest extends TestCase
 {
-    /** @var TestApp */
-    private $app;
+    private TestApp $app;
 
     protected function setUp(): void {
         ResettableMicro::reset();
@@ -103,7 +102,7 @@ final class AppTest extends TestCase
         $this->app = new TestApp([$basePath.'/configs/app.ini', $basePath.'/configs/app-extend.ini']);
     }
 
-    public function testFullInitLoadsConfigs() {
+    public function testFullInitLoadsConfigs(): void {
         /** @var Config $config */
         $this->app->fullInit();
         $config = Micro::get(Config::class);
@@ -111,26 +110,26 @@ final class AppTest extends TestCase
         $this->assertTrue($config->get('extension_loaded'));
     }
 
-    public function testFullInitCallsMiddlewares() {
+    public function testFullInitCallsMiddlewares(): void {
         $this->app->addMiddleware(AppTestMiddleware::class);
         $this->app->fullInit();
         $middleware = Micro::get(AppTestMiddleware::class);
         $this->assertTrue($middleware->didRun());
     }
 
-    public function testHandleExceptionOnFullInitWithConfig() {
+    public function testHandleExceptionOnFullInitWithConfig(): void {
         $this->expectException(MicroException::class);
         $app = new TestAppInitExceptionWithConfig([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $app->fullInit();
     }
 
-    public function testHandleExceptionOnFullInitWithLogger() {
+    public function testHandleExceptionOnFullInitWithLogger(): void {
         $this->expectException(MicroException::class);
         $app = new TestAppInitExceptionWithLogger([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $app->fullInit();
     }
 
-    public function testHandleExceptionOnFullProcess() {
+    public function testHandleExceptionOnFullProcess(): void {
         $app = new TestAppProcessException([dirname(dirname(__FILE__)).'/configs/app.ini']);
         $app->fullInit();
         ob_start();
@@ -141,7 +140,7 @@ final class AppTest extends TestCase
         $this->assertTrue(strpos($logger->errorMessage(), 'Test exception') !== false);
     }
 
-    public function testFinish() {
+    public function testFinish(): void {
         ob_start();
         $this->app->finish('test');
         $content = ob_get_clean();

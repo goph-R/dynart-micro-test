@@ -8,7 +8,7 @@ use Dynart\Micro\Config;
  */
 final class ConfigTest extends TestCase {
 
-    public function testLoadWhenNoEnvironmentVariablesWasSetShouldLoadProperTypesAndValues() {
+    public function testLoadWhenNoEnvironmentVariablesWasSetShouldLoadProperTypesAndValues(): void {
         $config = new Config();
         $config->load(dirname(__FILE__, 2) . '/configs/config.ini');
         $this->assertEquals(11, $config->get('integer'));
@@ -20,7 +20,7 @@ final class ConfigTest extends TestCase {
         $this->assertEquals('inside', $config->get('env.from.outside'));
     }
 
-    public function testLoadWhenEnvironmentVariablesWasSet() {
+    public function testLoadWhenEnvironmentVariablesWasSet(): void {
         putenv("TEST_ENV=test_env");
         putenv("env.from.outside=outside");
         $config = new Config();
@@ -30,20 +30,20 @@ final class ConfigTest extends TestCase {
         $this->assertEquals('NON_EXISTING_ENV=', $config->get('env.non_existing_env'));
     }
 
-    public function testLoadSecondOverridesFirst() {
+    public function testLoadSecondOverridesFirst(): void {
         $config = new Config();
         $config->load(dirname(__FILE__, 2) . '/configs/config.ini');
         $config->load(dirname(__FILE__, 2) . '/configs/config-extend.ini');
         $this->assertEquals(22, $config->get('integer'));
     }
 
-    public function testGetCommaSeparatedValuesShouldReturnTrimmedStringInAnArray() {
+    public function testGetCommaSeparatedValuesShouldReturnTrimmedStringInAnArray(): void {
         $config = new Config();
         $config->load(dirname(__FILE__, 2) . '/configs/config.ini');
         $this->assertEquals(['1', '2', '3'], $config->getCommaSeparatedValues('comma.separated'));
     }
 
-    public function testGetShouldUseCacheOnSecondCallInDefault() {
+    public function testGetShouldUseCacheOnSecondCallInDefault(): void {
         putenv("env.from.outside=outside");
         $config = new Config();
         $this->assertEquals('outside', $config->get('env.from.outside'));
@@ -51,7 +51,7 @@ final class ConfigTest extends TestCase {
         $this->assertEquals('outside', $config->get('env.from.outside'));
     }
 
-    public function testGetArrayReturnsWithArrayInArrayAndCachesIt() {
+    public function testGetArrayReturnsWithArrayInArrayAndCachesIt(): void {
         $config = new Config();
         $expected = [ // check phpunit.dist.xml for environment variables
             ['name' => 'name_0', 'description' => 'description_0'],
@@ -62,18 +62,18 @@ final class ConfigTest extends TestCase {
         $this->assertEquals($expected, $config->getArray('env.array')); // just for coverage (cached if)
     }
 
-    public function testGetFullPathShouldReturnARightPath() {
+    public function testGetFullPathShouldReturnARightPath(): void {
         $config = new Config();
         $config->load(dirname(__FILE__, 2) . '/configs/config.ini');
         $this->assertEquals('app_root_path/path', $config->getFullPath('~/path'));
     }
 
-    public function testGetFullPathReturnsPathUnchangedWhenNoTilde() {
+    public function testGetFullPathReturnsPathUnchangedWhenNoTilde(): void {
         $config = new Config();
         $this->assertEquals('/absolute/path', $config->getFullPath('/absolute/path'));
     }
 
-    public function testClearCacheRemovesCachedValues() {
+    public function testClearCacheRemovesCachedValues(): void {
         $config = new Config();
         $config->load(dirname(__FILE__, 2) . '/configs/config.ini');
         $config->get('integer'); // cache it
@@ -82,7 +82,7 @@ final class ConfigTest extends TestCase {
         $this->assertFalse($config->isCached('integer'));
     }
 
-    public function testClearCacheAllowsRefreshFromConfig() {
+    public function testClearCacheAllowsRefreshFromConfig(): void {
         putenv("cleartest=original");
         $config = new Config();
         $this->assertEquals('original', $config->get('cleartest'));

@@ -7,8 +7,9 @@ use Dynart\Micro\Request;
 use Dynart\Micro\Session;
 
 final class TestValidator extends Validator {
-    public function validate($value) {
+    public function validate(mixed $value): bool {
         $this->message = 'message';
+        return false;
     }
 }
 
@@ -16,14 +17,14 @@ final class TestValidator extends Validator {
  * @covers \Dynart\Micro\Validator
  */
 final class ValidatorTest extends TestCase {
-    public function testSetForm() {
+    public function testSetForm(): void {
         $form = new Form(new Request(), new Session());
         $validator = new TestValidator();
         $validator->setForm($form);
         $this->assertSame($form, $validator->form());
     }
 
-    public function testMessage() { // coverage
+    public function testMessage(): void { // coverage
         $validator = new TestValidator();
         $validator->validate('');
         $this->assertEquals('message', $validator->message());

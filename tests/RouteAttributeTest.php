@@ -8,19 +8,19 @@ use Dynart\Micro\Attribute\Route;
  */
 final class RouteAttributeTest extends TestCase
 {
-    public function testConstructorSetsMethodAndPath() {
+    public function testConstructorSetsMethodAndPath(): void {
         $route = new Route('GET', '/users/?');
         $this->assertEquals('GET', $route->method);
         $this->assertEquals('/users/?', $route->path);
     }
 
-    public function testPostMethod() {
+    public function testPostMethod(): void {
         $route = new Route('POST', '/users/save');
         $this->assertEquals('POST', $route->method);
         $this->assertEquals('/users/save', $route->path);
     }
 
-    public function testAttributeTargetIsMethod() {
+    public function testAttributeTargetIsMethod(): void {
         $refClass = new ReflectionClass(Route::class);
         $attributes = $refClass->getAttributes(\Attribute::class);
         $this->assertCount(1, $attributes);

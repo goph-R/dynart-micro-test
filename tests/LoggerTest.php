@@ -9,10 +9,9 @@ use Dynart\Micro\Config;
  */
 final class LoggerTest extends TestCase {
 
-    private $dir;
+    private string $dir;
 
-    /** @var Logger */
-    private $logger;
+    private Logger $logger;
 
     protected function setUp(): void {
         $this->dir = dirname(dirname(__FILE__)).'/logs';
@@ -39,16 +38,16 @@ final class LoggerTest extends TestCase {
 
 
 
-    public function testConstructorSetsLogLevelDirAndOptions() {
+    public function testConstructorSetsLogLevelDirAndOptions(): void {
         $path = $this->logger->getLogFilePath();
         $this->assertEquals($this->dir, dirname($path));
     }
 
-    public function testLevel() {
+    public function testLevel(): void {
         $this->assertEquals('info', $this->logger->level());
     }
 
-    public function testErrorLog() { //don't know how to test this...
+    public function testErrorLog(): void { //don't know how to test this...
         $expectedErrorMsg = "_LOG_TEST_"; // this should be in stderr, but that is in use so can't open
         $this->logger->error($expectedErrorMsg);
         $this->assertInstanceOf(Logger::class, $this->logger);

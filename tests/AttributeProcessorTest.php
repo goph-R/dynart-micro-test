@@ -96,13 +96,13 @@ final class AttributeProcessorTest extends TestCase
         return Micro::get(Router::class);
     }
 
-    public function testAddThrowsExceptionForNonHandler() {
+    public function testAddThrowsExceptionForNonHandler(): void {
         $processor = new AttributeProcessor();
         $this->expectException(MicroException::class);
         $processor->add(NotAnAttributeHandler::class);
     }
 
-    public function testRunProcessesMethodAttributes() {
+    public function testRunProcessesMethodAttributes(): void {
         $router = $this->setUpRouter();
         Micro::add(RouteAttributeHandler::class);
         Micro::add(AttributeTestController::class);
@@ -116,7 +116,7 @@ final class AttributeProcessorTest extends TestCase
         $this->assertEquals([AttributeTestController::class, 'save'], $routes['POST']['/test/save']);
     }
 
-    public function testRunProcessesClassAttributes() {
+    public function testRunProcessesClassAttributes(): void {
         Micro::add(TestClassAttributeHandler::class);
         Micro::add(AttributeTestController::class);
 
@@ -130,7 +130,7 @@ final class AttributeProcessorTest extends TestCase
         $this->assertEquals('my-controller', $handler->handled[0]['label']);
     }
 
-    public function testRunProcessesPropertyAttributes() {
+    public function testRunProcessesPropertyAttributes(): void {
         Micro::add(TestPropertyAttributeHandler::class);
         Micro::add(AttributeTestController::class);
 
@@ -145,7 +145,7 @@ final class AttributeProcessorTest extends TestCase
         $this->assertEquals('tagged', $handler->handled[0]['name']);
     }
 
-    public function testNamespaceFilterProcessesOnlyMatchingClasses() {
+    public function testNamespaceFilterProcessesOnlyMatchingClasses(): void {
         $router = $this->setUpRouter();
         Micro::add(RouteAttributeHandler::class);
         Micro::add(AttributeTestController::class);
@@ -161,7 +161,7 @@ final class AttributeProcessorTest extends TestCase
         $this->assertArrayNotHasKey('/test', $routes['GET'] ?? []);
     }
 
-    public function testMethodsWithoutAttributesAreIgnored() {
+    public function testMethodsWithoutAttributesAreIgnored(): void {
         $router = $this->setUpRouter();
         Micro::add(RouteAttributeHandler::class);
         Micro::add(AttributeTestController::class);
@@ -175,7 +175,7 @@ final class AttributeProcessorTest extends TestCase
         $this->assertNotContains('/noAttribute', $getRoutes);
     }
 
-    public function testRunWithNoHandlersDoesNothing() {
+    public function testRunWithNoHandlersDoesNothing(): void {
         Micro::add(AttributeTestController::class);
         $processor = new AttributeProcessor();
         $processor->run();
@@ -183,7 +183,7 @@ final class AttributeProcessorTest extends TestCase
         $this->assertTrue(true);
     }
 
-    public function testRunWithNoRegisteredClassesDoesNothing() {
+    public function testRunWithNoRegisteredClassesDoesNothing(): void {
         Micro::add(RouteAttributeHandler::class);
         $this->setUpRouter();
 
