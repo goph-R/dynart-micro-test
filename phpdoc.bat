@@ -1,1 +1,1 @@
-php phpDocumentor.phar -d c:/xampp/htdocs/dynart-micro/src -d c:/xampp/htdocs/dynart-micro/views -t docs/api
+php phpDocumentor.phar -d c:/users/gopher/projects/dynart-micro/src -d c:/users/gopher/projects/dynart-micro/views -t docs/api
