@@ -2,7 +2,9 @@
 
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Request;
+use Dynart\Micro\RequestInterface;
 use Dynart\Micro\Router;
 use Dynart\Micro\Translation;
 use Dynart\Micro\Middleware\LocaleResolver;
@@ -12,9 +14,8 @@ use Dynart\Micro\Middleware\LocaleResolver;
  */
 final class LocaleResolverTest extends TestCase
 {
-    private function createConfig(array $allLocales, string $default): Config {
-        $config = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
+    private function createConfig(array $allLocales, string $default): ConfigInterface {
+        $config = $this->getMockBuilder(ConfigInterface::class)
             ->getMock();
 
         $config->method('get')->willReturnCallback(function($name, $defaultVal = null) use ($default) {
@@ -25,13 +26,12 @@ final class LocaleResolverTest extends TestCase
         return $config;
     }
 
-    private function createRouter(Config $config, Request $request): Router {
+    private function createRouter(ConfigInterface $config, RequestInterface $request): Router {
         return new Router($config, $request);
     }
 
-    private function createRequest(string $route = '/', ?string $acceptLanguage = null): Request {
-        $request = $this->getMockBuilder(Request::class)
-            ->disableOriginalConstructor()
+    private function createRequest(string $route = '/', ?string $acceptLanguage = null): RequestInterface {
+        $request = $this->getMockBuilder(RequestInterface::class)
             ->getMock();
 
         $request->method('get')->willReturn($route);

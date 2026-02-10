@@ -8,12 +8,16 @@ use Dynart\Micro\Micro;
 use Dynart\Micro\App;
 use Dynart\Micro\WebApp;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Request;
+use Dynart\Micro\RequestInterface;
 use Dynart\Micro\Response;
+use Dynart\Micro\ResponseInterface;
 use Dynart\Micro\Router;
-use Dynart\Micro\Session;
-use Dynart\Micro\View;
-use Dynart\Micro\Middleware;
+use Dynart\Micro\RouterInterface;
+use Dynart\Micro\SessionInterface;
+use Dynart\Micro\ViewInterface;
+use Dynart\Micro\MiddlewareInterface;
 use Dynart\Micro\MicroException;
 use Dynart\Micro\Middleware\AttributeProcessor;
 use Dynart\Micro\AttributeHandler\RouteAttributeHandler;
@@ -47,7 +51,7 @@ class TestWebApp extends WebApp {
 }
 
 class InitExceptionRouter extends Router {
-    public function __construct(Config $config, Request $request) {
+    public function __construct(ConfigInterface $config, RequestInterface $request) {
         parent::__construct($config, $request);
         throw new MicroException("Router exception on init");
     }
@@ -56,7 +60,7 @@ class InitExceptionRouter extends Router {
 class TestWebAppInitExceptionWithRouter extends TestWebApp {
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
-        Micro::add(Router::class, InitExceptionRouter::class);
+        Micro::add(RouterInterface::class, InitExceptionRouter::class);
     }
 }
 
@@ -64,7 +68,7 @@ class TestWebAppInitExceptionWithRouter extends TestWebApp {
 class TestWebAppWithNoErrorPage extends WebApp {
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
-        Micro::add(Router::class, InitExceptionRouter::class);
+        Micro::add(RouterInterface::class, InitExceptionRouter::class);
     }
     public function finish(string|int $content = 0): void {}
 }
@@ -73,7 +77,7 @@ class TestWebAppSendError extends TestWebApp {
 
 }
 
-class WebAppTestMiddleware implements Middleware {
+class WebAppTestMiddleware implements MiddlewareInterface {
     private bool $didRun = false;
     public function run(): void {
         $this->didRun = true;
@@ -119,40 +123,40 @@ final class WebAppTest extends TestCase
     }
 
     public function testConstructorShouldAddBaseWebRelatedClasses(): void {
-        $this->assertTrue(Micro::hasInterface(Request::class));
-        $this->assertTrue(Micro::hasInterface(Response::class));
-        $this->assertTrue(Micro::hasInterface(Router::class));
-        $this->assertTrue(Micro::hasInterface(Session::class));
-        $this->assertTrue(Micro::hasInterface(View::class));
+        $this->assertTrue(Micro::hasInterface(RequestInterface::class));
+        $this->assertTrue(Micro::hasInterface(ResponseInterface::class));
+        $this->assertTrue(Micro::hasInterface(RouterInterface::class));
+        $this->assertTrue(Micro::hasInterface(SessionInterface::class));
+        $this->assertTrue(Micro::hasInterface(ViewInterface::class));
     }
 
     public function testProcessCallsRouteWithParameterOutputsString(): void {
         $this->setUpWebAppForProcess();
-        Micro::get(Router::class)->add('/test/route/?', function($value) { return $value; });
+        Micro::get(RouterInterface::class)->add('/test/route/?', function($value) { return $value; });
         $content = $this->processAndFetchOutput();
-        $this->assertEquals(WebApp::CONTENT_TYPE_HTML, Micro::get(Response::class)->header(WebApp::HEADER_CONTENT_TYPE));
+        $this->assertEquals(WebApp::CONTENT_TYPE_HTML, Micro::get(ResponseInterface::class)->header(WebApp::HEADER_CONTENT_TYPE));
         $this->assertEquals('123', $content);
     }
 
     public function testProcessCallsRouteWithParameterOutputsArrayAsJsonString(): void {
         $this->setUpWebAppForProcess();
-        Micro::get(Router::class)->add('/test/route/?', function($value) { return ['value' => $value]; });
+        Micro::get(RouterInterface::class)->add('/test/route/?', function($value) { return ['value' => $value]; });
         $content = $this->processAndFetchOutput();
-        $this->assertEquals(WebApp::CONTENT_TYPE_JSON, Micro::get(Response::class)->header(WebApp::HEADER_CONTENT_TYPE));
+        $this->assertEquals(WebApp::CONTENT_TYPE_JSON, Micro::get(ResponseInterface::class)->header(WebApp::HEADER_CONTENT_TYPE));
         $this->assertEquals('{"value":"123"}', $content);
     }
 
     public function testProcessCallsRouteWithClassAndMethodName(): void {
         $this->setUpWebAppForProcess();
         Micro::add(TestController::class);
-        Micro::get(Router::class)->add('/test/route/?', [TestController::class, 'index']);
+        Micro::get(RouterInterface::class)->add('/test/route/?', [TestController::class, 'index']);
         $content = $this->processAndFetchOutput();
         $this->assertEquals('test', $content);
     }
 
     public function testRedirectClearsHeadersSetsOnlyLocationSendsNoContentAndFinishes(): void {
         $this->webApp->init();
-        $response = Micro::get(Response::class);
+        $response = Micro::get(ResponseInterface::class);
         $response->setHeader('remove', 'this');
         ob_start();
         $this->webApp->redirect('somewhere');
@@ -165,14 +169,14 @@ final class WebAppTest extends TestCase
 
     public function testRedirectWithFullUrl(): void {
         $this->webApp->init();
-        $response = Micro::get(Response::class);
+        $response = Micro::get(ResponseInterface::class);
         $this->webApp->redirect('https://somewhere.com');
         $this->assertEquals('https://somewhere.com', $response->header('Location'));
     }
 
     public function testHandleExceptionOnFullProcess(): void {
         $this->setUpWebAppForProcess();
-        Micro::get(Router::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
+        Micro::get(RouterInterface::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
 
         ob_start();
         $this->webApp->fullProcess();
@@ -181,9 +185,9 @@ final class WebAppTest extends TestCase
     }
 
     public function testHandleExceptionOnFullProcessOnProduction(): void {
-        Micro::add(Config::class, WebAppProdConfig::class);
+        Micro::add(ConfigInterface::class, WebAppProdConfig::class);
         $this->setUpWebAppForProcess();
-        Micro::get(Router::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
+        Micro::get(RouterInterface::class)->add('/test/route/?', function($value) { throw new MicroException("error"); });
         ob_start();
         $this->webApp->fullProcess();
         $content = ob_get_clean();

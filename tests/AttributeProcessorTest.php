@@ -4,14 +4,17 @@ require_once dirname(__FILE__, 2) .'/src/ResettableMicro.php';
 
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Micro;
-use Dynart\Micro\AttributeHandler;
+use Dynart\Micro\AttributeHandlerInterface;
 use Dynart\Micro\Attribute\Route;
 use Dynart\Micro\AttributeHandler\RouteAttributeHandler;
 use Dynart\Micro\Middleware\AttributeProcessor;
 use Dynart\Micro\MicroException;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Request;
+use Dynart\Micro\RequestInterface;
 use Dynart\Micro\Router;
+use Dynart\Micro\RouterInterface;
 use Dynart\Micro\Test\ResettableMicro;
 
 #[\Attribute(\Attribute::TARGET_CLASS)]
@@ -44,21 +47,21 @@ class AttributeTestControllerOther {
     public function index() {}
 }
 
-class TestClassAttributeHandler implements AttributeHandler {
+class TestClassAttributeHandler implements AttributeHandlerInterface {
     public array $handled = [];
 
     public function attributeClass(): string { return TestClassAttribute::class; }
-    public function targets(): array { return [AttributeHandler::TARGET_CLASS]; }
+    public function targets(): array { return [AttributeHandlerInterface::TARGET_CLASS]; }
     public function handle(string $className, mixed $subject, object $attribute): void {
         $this->handled[] = ['class' => $className, 'label' => $attribute->label];
     }
 }
 
-class TestPropertyAttributeHandler implements AttributeHandler {
+class TestPropertyAttributeHandler implements AttributeHandlerInterface {
     public array $handled = [];
 
     public function attributeClass(): string { return TestPropertyAttribute::class; }
-    public function targets(): array { return [AttributeHandler::TARGET_PROPERTY]; }
+    public function targets(): array { return [AttributeHandlerInterface::TARGET_PROPERTY]; }
     public function handle(string $className, mixed $subject, object $attribute): void {
         $this->handled[] = ['class' => $className, 'property' => $subject->getName(), 'name' => $attribute->name];
     }
@@ -80,20 +83,10 @@ final class AttributeProcessorTest extends TestCase
     }
 
     private function setUpRouter(): Router {
-        $config = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $config->method('get')->willReturn('/');
-
-        $request = $this->getMockBuilder(Request::class)
-            ->disableOriginalConstructor()
-            ->getMock();
-        $request->method('get')->willReturn('/');
-
-        Micro::add(Config::class);
-        Micro::add(Request::class);
-        Micro::add(Router::class);
-        return Micro::get(Router::class);
+        Micro::add(ConfigInterface::class, Config::class);
+        Micro::add(RequestInterface::class, Request::class);
+        Micro::add(RouterInterface::class, Router::class);
+        return Micro::get(RouterInterface::class);
     }
 
     public function testAddThrowsExceptionForNonHandler(): void {
@@ -191,7 +184,7 @@ final class AttributeProcessorTest extends TestCase
         $processor->add(RouteAttributeHandler::class);
         $processor->run();
 
-        $router = Micro::get(Router::class);
+        $router = Micro::get(RouterInterface::class);
         $this->assertEmpty($router->routes());
     }
 }

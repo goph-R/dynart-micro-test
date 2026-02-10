@@ -1,11 +1,13 @@
 <?php
 
 use PHPUnit\Framework\TestCase;
-use Dynart\Micro\AttributeHandler;
+use Dynart\Micro\AttributeHandlerInterface;
 use Dynart\Micro\AttributeHandler\RouteAttributeHandler;
 use Dynart\Micro\Attribute\Route;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Request;
+use Dynart\Micro\RequestInterface;
 use Dynart\Micro\Router;
 
 /**
@@ -17,13 +19,11 @@ final class RouteAttributeHandlerTest extends TestCase
     private RouteAttributeHandler $handler;
 
     protected function setUp(): void {
-        $config = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
+        $config = $this->getMockBuilder(ConfigInterface::class)
             ->getMock();
         $config->method('get')->willReturn('/');
 
-        $request = $this->getMockBuilder(Request::class)
-            ->disableOriginalConstructor()
+        $request = $this->getMockBuilder(RequestInterface::class)
             ->getMock();
         $request->method('get')->willReturn('/');
 
@@ -36,7 +36,7 @@ final class RouteAttributeHandlerTest extends TestCase
     }
 
     public function testTargetsReturnsMethodOnly(): void {
-        $this->assertEquals([AttributeHandler::TARGET_METHOD], $this->handler->targets());
+        $this->assertEquals([AttributeHandlerInterface::TARGET_METHOD], $this->handler->targets());
     }
 
     public function testHandleAddsRouteToRouter(): void {

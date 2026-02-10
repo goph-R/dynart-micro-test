@@ -8,8 +8,10 @@ use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Micro;
 use Dynart\Micro\App;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Logger;
-use Dynart\Micro\Middleware;
+use Dynart\Micro\LoggerInterface;
+use Dynart\Micro\MiddlewareInterface;
 use Dynart\Micro\MicroException;
 
 
@@ -33,7 +35,7 @@ class InitExceptionConfig extends Config {
 }
 
 class InitExceptionLogger extends Logger {
-    public function __construct(Config $config) {
+    public function __construct(ConfigInterface $config) {
         parent::__construct($config);
         throw new MicroException("Logger exception on init");
     }
@@ -48,14 +50,14 @@ class TestAppInitException extends TestApp {
 class TestAppInitExceptionWithConfig extends TestApp {
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
-        Micro::add(Config::class, InitExceptionConfig::class);
+        Micro::add(ConfigInterface::class, InitExceptionConfig::class);
     }
 }
 
 class TestAppInitExceptionWithLogger extends TestApp {
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
-        Micro::add(Logger::class, InitExceptionLogger::class);
+        Micro::add(LoggerInterface::class, InitExceptionLogger::class);
     }
 }
 
@@ -72,14 +74,14 @@ class TestAppLogger extends Logger {
 class TestAppProcessException extends TestApp {
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
-        Micro::add(Logger::class, TestAppLogger::class);
+        Micro::add(LoggerInterface::class, TestAppLogger::class);
     }
     public function process(): void {
         throw new MicroException("Test exception");
     }
 }
 
-class AppTestMiddleware implements Middleware {
+class AppTestMiddleware implements MiddlewareInterface {
     private bool $didRun = false;
     public function run(): void {
         $this->didRun = true;
@@ -105,7 +107,7 @@ final class AppTest extends TestCase
     public function testFullInitLoadsConfigs(): void {
         /** @var Config $config */
         $this->app->fullInit();
-        $config = Micro::get(Config::class);
+        $config = Micro::get(ConfigInterface::class);
         $this->assertTrue($config->get('loaded'));
         $this->assertTrue($config->get('extension_loaded'));
     }
@@ -136,7 +138,7 @@ final class AppTest extends TestCase
         $app->fullProcess();
         $content = ob_get_clean();
         error_log($content);
-        $logger = Micro::get(Logger::class);
+        $logger = Micro::get(LoggerInterface::class);
         $this->assertTrue(strpos($logger->errorMessage(), 'Test exception') !== false);
     }
 

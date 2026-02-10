@@ -3,6 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Logger;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 
 /**
  * @covers \Dynart\Micro\Logger
@@ -17,8 +18,7 @@ final class LoggerTest extends TestCase {
         $this->dir = dirname(dirname(__FILE__)).'/logs';
 
         /** @var \Dynart\Micro\Config&\PHPUnit\Framework\MockObject\MockObject $config */
-        $config = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
+        $config = $this->getMockBuilder(ConfigInterface::class)
             ->getMock();
 
         $config->expects($this->any())

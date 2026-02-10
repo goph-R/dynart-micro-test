@@ -6,10 +6,14 @@ use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Logger;
+use Dynart\Micro\LoggerInterface;
 use Dynart\Micro\CliApp;
 use Dynart\Micro\CliCommands;
+use Dynart\Micro\CliCommandsInterface;
 use Dynart\Micro\CliOutput;
+use Dynart\Micro\CliOutputInterface;
 use Dynart\Micro\MicroException;
 
 use Dynart\Micro\Test\ResettableMicro;
@@ -45,7 +49,7 @@ class TestCliAppLogger extends Logger {
 class TestCliAppWithException extends TestCliApp {
     public function __construct(array $configPaths) {
         parent::__construct($configPaths);
-        Micro::add(Logger::class, TestCliAppLogger::class);
+        Micro::add(LoggerInterface::class, TestCliAppLogger::class);
     }
     public function init(): void {
         parent::init();
@@ -86,20 +90,20 @@ final class CliAppTest extends TestCase
     }
 
     public function testConstructorRegistersCliClasses(): void {
-        $this->assertTrue(Micro::hasInterface(CliCommands::class));
-        $this->assertTrue(Micro::hasInterface(CliOutput::class));
+        $this->assertTrue(Micro::hasInterface(CliCommandsInterface::class));
+        $this->assertTrue(Micro::hasInterface(CliOutputInterface::class));
     }
 
     public function testInitCreatesCommands(): void {
         $this->app->fullInit();
-        $this->assertInstanceOf(CliCommands::class, Micro::get(CliCommands::class));
+        $this->assertInstanceOf(CliCommands::class, Micro::get(CliCommandsInterface::class));
     }
 
     public function testProcessCallsMatchedCommand(): void {
         $this->setArgv(['script.php', 'hello']);
         $this->app->fullInit();
         $called = false;
-        Micro::get(CliCommands::class)->add('hello', function() use (&$called) {
+        Micro::get(CliCommandsInterface::class)->add('hello', function() use (&$called) {
             $called = true;
             return 0;
         });
@@ -111,7 +115,7 @@ final class CliAppTest extends TestCase
         $this->setArgv(['script.php', 'greet', '-name', 'world']);
         $this->app->fullInit();
         $receivedParams = null;
-        Micro::get(CliCommands::class)->add('greet', function($params) use (&$receivedParams) {
+        Micro::get(CliCommandsInterface::class)->add('greet', function($params) use (&$receivedParams) {
             $receivedParams = $params;
             return 0;
         }, ['name']);
@@ -122,7 +126,7 @@ final class CliAppTest extends TestCase
     public function testProcessFinishesWithCommandReturnValue(): void {
         $this->setArgv(['script.php', 'test']);
         $this->app->fullInit();
-        Micro::get(CliCommands::class)->add('test', function() {
+        Micro::get(CliCommandsInterface::class)->add('test', function() {
             return 42;
         });
         $this->app->fullProcess();
@@ -140,7 +144,7 @@ final class CliAppTest extends TestCase
         $this->setArgv(['script.php', 'simple']);
         $this->app->fullInit();
         $called = false;
-        Micro::get(CliCommands::class)->add('simple', function() use (&$called) {
+        Micro::get(CliCommandsInterface::class)->add('simple', function() use (&$called) {
             $called = true;
             return 0;
         });
@@ -153,7 +157,7 @@ final class CliAppTest extends TestCase
         $this->setArgv(['script.php', 'run']);
         $this->app->fullInit();
         Micro::add(TestCliController::class);
-        Micro::get(CliCommands::class)->add('run', [TestCliController::class, 'run']);
+        Micro::get(CliCommandsInterface::class)->add('run', [TestCliController::class, 'run']);
         $this->app->fullProcess();
         $this->assertEquals(0, $this->app->finishContent());
     }

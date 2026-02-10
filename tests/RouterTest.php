@@ -2,8 +2,10 @@
 
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Config;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Router;
 use Dynart\Micro\Request;
+use Dynart\Micro\RequestInterface;
 use Dynart\Micro\App;
 
 class PrefixVariableCallableClass {
@@ -31,12 +33,10 @@ final class RouterTest extends TestCase
     private $request;
 
     protected function setUp(): void {
-        $this->config = $this->getMockBuilder(Config::class)
-            ->disableOriginalConstructor()
+        $this->config = $this->getMockBuilder(ConfigInterface::class)
             ->getMock();
 
-        $this->request = $this->getMockBuilder(Request::class)
-            ->disableOriginalConstructor()
+        $this->request = $this->getMockBuilder(RequestInterface::class)
             ->getMock();
     }
 
