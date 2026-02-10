@@ -15,6 +15,7 @@ use Dynart\Micro\CliCommandsInterface;
 use Dynart\Micro\CliOutput;
 use Dynart\Micro\CliOutputInterface;
 use Dynart\Micro\MicroException;
+use Dynart\Micro\EventServiceInterface;
 
 use Dynart\Micro\Test\ResettableMicro;
 
@@ -160,6 +161,33 @@ final class CliAppTest extends TestCase
         Micro::get(CliCommandsInterface::class)->add('run', [TestCliController::class, 'run']);
         $this->app->fullProcess();
         $this->assertEquals(0, $this->app->finishContent());
+    }
+
+    public function testCommandMatchedEventIsEmitted(): void {
+        $this->setArgv(['script.php', 'hello']);
+        $this->app->fullInit();
+        $receivedCallable = null;
+        $receivedParams = null;
+        Micro::get(EventServiceInterface::class)->subscribe(CliApp::EVENT_COMMAND_MATCHED, function($callable, $params) use (&$receivedCallable, &$receivedParams) {
+            $receivedCallable = $callable;
+            $receivedParams = $params;
+        });
+        Micro::get(CliCommandsInterface::class)->add('hello', function() { return 0; });
+        $this->app->fullProcess();
+        $this->assertNotNull($receivedCallable);
+        $this->assertEmpty($receivedParams);
+    }
+
+    public function testCommandMatchedEventIsEmittedWithParams(): void {
+        $this->setArgv(['script.php', 'greet', '-name', 'world']);
+        $this->app->fullInit();
+        $receivedParams = null;
+        Micro::get(EventServiceInterface::class)->subscribe(CliApp::EVENT_COMMAND_MATCHED, function($callable, $params) use (&$receivedParams) {
+            $receivedParams = $params;
+        });
+        Micro::get(CliCommandsInterface::class)->add('greet', function($params) { return 0; }, ['name']);
+        $this->app->fullProcess();
+        $this->assertEquals(['name' => 'world'], $receivedParams);
     }
 
     public function testHandleExceptionFinishesWithExitCode1(): void {

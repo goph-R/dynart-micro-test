@@ -21,6 +21,7 @@ use Dynart\Micro\MiddlewareInterface;
 use Dynart\Micro\MicroException;
 use Dynart\Micro\Middleware\AttributeProcessor;
 use Dynart\Micro\AttributeHandler\RouteAttributeHandler;
+use Dynart\Micro\EventServiceInterface;
 
 use Dynart\Micro\Test\ResettableMicro;
 
@@ -212,6 +213,20 @@ final class WebAppTest extends TestCase
         $this->setUpWebAppForProcess();
         $this->webApp->fullProcess();
         $this->assertEquals(404, $this->webApp->errorCode());
+    }
+
+    public function testRouteMatchedEventIsEmitted(): void {
+        $this->setUpWebAppForProcess();
+        Micro::get(RouterInterface::class)->add('/test/route/?', function($value) { return $value; });
+        $receivedCallable = null;
+        $receivedParams = null;
+        Micro::get(EventServiceInterface::class)->subscribe(WebApp::EVENT_ROUTE_MATCHED, function($callable, $params) use (&$receivedCallable, &$receivedParams) {
+            $receivedCallable = $callable;
+            $receivedParams = $params;
+        });
+        $this->processAndFetchOutput();
+        $this->assertNotNull($receivedCallable);
+        $this->assertEquals(['123'], $receivedParams);
     }
 
     public function testUseRouteAttributes(): void {

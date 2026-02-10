@@ -13,6 +13,7 @@ use Dynart\Micro\Logger;
 use Dynart\Micro\LoggerInterface;
 use Dynart\Micro\MiddlewareInterface;
 use Dynart\Micro\MicroException;
+use Dynart\Micro\EventServiceInterface;
 
 
 class TestApp extends App {
@@ -147,5 +148,14 @@ final class AppTest extends TestCase
         $this->app->finish('test');
         $content = ob_get_clean();
         $this->assertEquals('test', $content);
+    }
+
+    public function testInitFinishedEventIsEmitted(): void {
+        $emitted = false;
+        Micro::get(EventServiceInterface::class)->subscribe(App::EVENT_INIT_FINISHED, function() use (&$emitted) {
+            $emitted = true;
+        });
+        $this->app->fullInit();
+        $this->assertTrue($emitted);
     }
 }
