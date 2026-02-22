@@ -50,9 +50,6 @@ class TestWebApp extends WebApp {
         parent::sendError($code, $content);
         $this->errorCode = $code;
     }
-    public function hasMiddleware($middleware): bool {
-        return in_array($middleware, $this->middlewares);
-    }
 }
 
 class InitExceptionRouter extends Router {
