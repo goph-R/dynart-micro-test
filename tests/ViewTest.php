@@ -47,12 +47,40 @@ final class ViewTest extends TestCase
         $this->assertEquals($scripts['test_script.js']['attribute1'], 'value1');
     }
 
+    public function testAddScriptPriorityOrderIsRespected(): void {
+        $this->view->addScript('b.js', [], 100);
+        $this->view->addScript('a.js', [], 10);
+        $keys = array_keys($this->view->scripts());
+        $this->assertEquals('a.js', $keys[0]);
+        $this->assertEquals('b.js', $keys[1]);
+    }
+
+    public function testAddScriptIsIdempotent(): void {
+        $this->view->addScript('test.js');
+        $this->view->addScript('test.js');
+        $this->assertCount(1, $this->view->scripts());
+    }
+
     public function testAddStyle(): void {
         $this->view->addStyle('test_style.css', ['attribute1' => 'value1']);
         $scripts = $this->view->styles();
         $this->assertArrayHasKey('test_style.css', $scripts);
         $this->assertArrayHasKey('attribute1', $scripts['test_style.css']);
         $this->assertEquals($scripts['test_style.css']['attribute1'], 'value1');
+    }
+
+    public function testAddStylePriorityOrderIsRespected(): void {
+        $this->view->addStyle('b.css', [], 100);
+        $this->view->addStyle('a.css', [], 10);
+        $keys = array_keys($this->view->styles());
+        $this->assertEquals('a.css', $keys[0]);
+        $this->assertEquals('b.css', $keys[1]);
+    }
+
+    public function testAddStyleIsIdempotent(): void {
+        $this->view->addStyle('test.css');
+        $this->view->addStyle('test.css');
+        $this->assertCount(1, $this->view->styles());
     }
 
     public function testStartEndBlockShouldCreateBlockWithContent(): void {

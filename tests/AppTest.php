@@ -23,9 +23,19 @@ class TestApp extends AbstractApp {
     protected function isCli(): bool {
         return false;
     }
-    public function hasMiddleware($middleware): bool {
-        return in_array($middleware, $this->middlewares);
-    }
+}
+
+class AppTestRunLog {
+    public static array $log = [];
+    public static function reset(): void { self::$log = []; }
+}
+
+class AppTestHighPriorityMiddleware implements MiddlewareInterface {
+    public function run(): void { AppTestRunLog::$log[] = 'high'; }
+}
+
+class AppTestLowPriorityMiddleware implements MiddlewareInterface {
+    public function run(): void { AppTestRunLog::$log[] = 'low'; }
 }
 
 class InitExceptionConfig extends Config {
@@ -101,6 +111,7 @@ final class AppTest extends TestCase
 
     protected function setUp(): void {
         ResettableMicro::reset();
+        AppTestRunLog::reset();
         $basePath = dirname(dirname(__FILE__));
         $this->app = new TestApp([$basePath.'/configs/app.ini', $basePath.'/configs/app-extend.ini']);
     }
@@ -157,5 +168,25 @@ final class AppTest extends TestCase
         });
         $this->app->fullInit();
         $this->assertTrue($emitted);
+    }
+
+    public function testHasMiddleware(): void {
+        $this->assertFalse($this->app->hasMiddleware(AppTestMiddleware::class));
+        $this->app->addMiddleware(AppTestMiddleware::class);
+        $this->assertTrue($this->app->hasMiddleware(AppTestMiddleware::class));
+    }
+
+    public function testAddMiddlewareIsIdempotent(): void {
+        $this->app->addMiddleware(AppTestHighPriorityMiddleware::class);
+        $this->app->addMiddleware(AppTestHighPriorityMiddleware::class);
+        $this->app->fullInit();
+        $this->assertCount(1, AppTestRunLog::$log);
+    }
+
+    public function testAddMiddlewareWithLowerNumberPriorityRunsFirst(): void {
+        $this->app->addMiddleware(AppTestLowPriorityMiddleware::class, 100);
+        $this->app->addMiddleware(AppTestHighPriorityMiddleware::class, 10);
+        $this->app->fullInit();
+        $this->assertEquals(['high', 'low'], AppTestRunLog::$log);
     }
 }
