@@ -1,12 +1,12 @@
 <?php
 
 use PHPunit\Framework\TestCase;
-use Dynart\Micro\Validator;
+use Dynart\Micro\AbstractValidator;
 use Dynart\Micro\Form;
 use Dynart\Micro\Request;
 use Dynart\Micro\Session;
 
-final class TestValidator extends Validator {
+final class TestValidator extends AbstractValidator {
     public function validate(mixed $value): bool {
         $this->message = 'message';
         return false;
@@ -14,7 +14,7 @@ final class TestValidator extends Validator {
 }
 
 /**
- * @covers \Dynart\Micro\Validator
+ * @covers \Dynart\Micro\AbstractValidator
  */
 final class ValidatorTest extends TestCase {
     public function testSetForm(): void {

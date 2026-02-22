@@ -6,7 +6,7 @@ use Dynart\Micro\Test\ResettableMicro;
 use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
-use Dynart\Micro\App;
+use Dynart\Micro\AbstractApp;
 use Dynart\Micro\Config;
 use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Logger;
@@ -16,7 +16,7 @@ use Dynart\Micro\MicroException;
 use Dynart\Micro\EventServiceInterface;
 
 
-class TestApp extends App {
+class TestApp extends AbstractApp {
     protected bool $exitOnFinish = false;
     public function init(): void {}
     public function process(): void {}
@@ -93,7 +93,7 @@ class AppTestMiddleware implements MiddlewareInterface {
 }
 
 /**
- * @covers \Dynart\Micro\App
+ * @covers \Dynart\Micro\AbstractApp
  */
 final class AppTest extends TestCase
 {
@@ -152,7 +152,7 @@ final class AppTest extends TestCase
 
     public function testInitFinishedEventIsEmitted(): void {
         $emitted = false;
-        Micro::get(EventServiceInterface::class)->subscribe(App::EVENT_INIT_FINISHED, function() use (&$emitted) {
+        Micro::get(EventServiceInterface::class)->subscribe(AbstractApp::EVENT_INIT_FINISHED, function() use (&$emitted) {
             $emitted = true;
         });
         $this->app->fullInit();

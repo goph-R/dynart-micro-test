@@ -3,9 +3,9 @@
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Request;
 use Dynart\Micro\UploadedFile;
-use Dynart\Micro\App;
+use Dynart\Micro\AbstractApp;
 
-final class RequestTestApp extends App {
+final class RequestTestApp extends AbstractApp {
     public function process(): void {}
     public function init(): void {}
 }

@@ -3,7 +3,7 @@
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Config;
 use Dynart\Micro\View;
-use Dynart\Micro\App;
+use Dynart\Micro\AbstractApp;
 
 /**
  * @covers \Dynart\Micro\View

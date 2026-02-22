@@ -2,7 +2,7 @@
 
 use Dynart\Micro\Translation;
 use Dynart\Micro\Config;
-use Dynart\Micro\App;
+use Dynart\Micro\AbstractApp;
 
 /**
  * @covers \Dynart\Micro\Translation

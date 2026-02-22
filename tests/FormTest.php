@@ -4,16 +4,16 @@ use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Form;
 use Dynart\Micro\Request;
 use Dynart\Micro\Session;
-use Dynart\Micro\Validator;
+use Dynart\Micro\AbstractValidator;
 
-class AlwaysFailsValidator extends Validator {
+class AlwaysFailsValidator extends AbstractValidator {
     public function validate(mixed $value): bool {
         $this->message = 'Validation failed.';
         return false;
     }
 }
 
-class AlwaysPassesValidator extends Validator {
+class AlwaysPassesValidator extends AbstractValidator {
     public function validate(mixed $value): bool {
         return true;
     }

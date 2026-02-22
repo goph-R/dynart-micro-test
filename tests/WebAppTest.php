@@ -5,7 +5,7 @@ require_once dirname(__FILE__, 2) .'/src/ResettableMicro.php';
 use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
-use Dynart\Micro\App;
+use Dynart\Micro\AbstractApp;
 use Dynart\Micro\WebApp;
 use Dynart\Micro\Config;
 use Dynart\Micro\ConfigInterface;
@@ -94,7 +94,7 @@ class TestController {
 
 class WebAppProdConfig extends Config {
     public function get(string $name, mixed $default = null, $useCache = true): mixed {
-        return $name == App::CONFIG_ENVIRONMENT ? App::PRODUCTION_ENVIRONMENT : parent::get($name, $default, $useCache);
+        return $name == AbstractApp::CONFIG_ENVIRONMENT ? AbstractApp::PRODUCTION_ENVIRONMENT : parent::get($name, $default, $useCache);
     }
 }
 

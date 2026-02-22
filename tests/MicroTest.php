@@ -5,12 +5,12 @@ require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
 use PHPUnit\Framework\TestCase;
 
 use Dynart\Micro\Micro;
-use Dynart\Micro\App;
+use Dynart\Micro\AbstractApp;
 use Dynart\Micro\MicroException;
 
 use Dynart\Micro\Test\ResettableMicro;
 
-class MicroTestApp extends App {
+class MicroTestApp extends AbstractApp {
     public function init(): void {}
     public function process(): void {}
 }
