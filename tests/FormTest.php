@@ -1,10 +1,28 @@
 <?php
 
+require_once dirname(__FILE__, 2) .'/src/ResettableMicro.php';
+
 use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Form;
 use Dynart\Micro\Request;
 use Dynart\Micro\Session;
 use Dynart\Micro\AbstractValidator;
+use Dynart\Micro\Micro;
+use Dynart\Micro\ViewInterface;
+use Dynart\Micro\Test\ResettableMicro;
+
+class SpyView extends \Dynart\Micro\View {
+    public array $fetchLog = [];
+
+    public function __construct() {
+        // Skip parent — no Config needed for the spy
+    }
+
+    public function fetch(string $__viewPath, array $__vars = []): string {
+        $this->fetchLog[] = ['template' => $__viewPath, 'params' => $__vars];
+        return "<{$__viewPath}>";
+    }
+}
 
 class AlwaysFailsValidator extends AbstractValidator {
     public function validate(mixed $value): bool {
@@ -29,6 +47,7 @@ final class FormTest extends TestCase {
     private Form $form;
 
     protected function setUp(): void {
+        ResettableMicro::reset();
         $_REQUEST = [];
         $_SERVER['REQUEST_METHOD'] = 'GET';
         $this->session = new Session();
@@ -291,5 +310,62 @@ final class FormTest extends TestCase {
         $form->addFields(['name' => ['type' => 'text']]);
         $form->process('POST');
         $this->assertArrayHasKey('_csrf', $form->fields());
+    }
+
+    // --- Fetch ---
+
+    private function setupSpyView(): SpyView {
+        Micro::add(ViewInterface::class, SpyView::class);
+        return Micro::get(ViewInterface::class);
+    }
+
+    public function testFetchErrorsDelegatesToView(): void {
+        $spy = $this->setupSpyView();
+        $result = $this->form->fetchErrors();
+        $this->assertCount(1, $spy->fetchLog);
+        $this->assertEquals('form-errors', $spy->fetchLog[0]['template']);
+        $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
+        $this->assertEquals('<form-errors>', $result);
+    }
+
+    public function testFetchFieldDelegatesToView(): void {
+        $spy = $this->setupSpyView();
+        $field = ['type' => 'text'];
+        $result = $this->form->fetchField('email', $field);
+        $this->assertCount(1, $spy->fetchLog);
+        $this->assertEquals('form-field', $spy->fetchLog[0]['template']);
+        $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
+        $this->assertEquals('email', $spy->fetchLog[0]['params']['name']);
+        $this->assertEquals($field, $spy->fetchLog[0]['params']['field']);
+        $this->assertEquals('<form-field>', $result);
+    }
+
+    public function testFetchInputDelegatesToView(): void {
+        $spy = $this->setupSpyView();
+        $field = ['type' => 'text'];
+        $result = $this->form->fetchInput('email', $field);
+        $this->assertCount(1, $spy->fetchLog);
+        $this->assertEquals('form-input', $spy->fetchLog[0]['template']);
+        $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
+        $this->assertEquals('email', $spy->fetchLog[0]['params']['name']);
+        $this->assertEquals($field, $spy->fetchLog[0]['params']['field']);
+        $this->assertEquals('<form-input>', $result);
+    }
+
+    public function testFetchCombinesErrorsAndAllFields(): void {
+        $spy = $this->setupSpyView();
+        $this->form->addFields([
+            'name'  => ['type' => 'text'],
+            'email' => ['type' => 'email'],
+        ]);
+        $result = $this->form->fetch();
+        // 1 fetchErrors call + 1 fetchField call per field
+        $this->assertCount(3, $spy->fetchLog);
+        $this->assertEquals('form-errors', $spy->fetchLog[0]['template']);
+        $this->assertEquals('form-field', $spy->fetchLog[1]['template']);
+        $this->assertEquals('name',       $spy->fetchLog[1]['params']['name']);
+        $this->assertEquals('form-field', $spy->fetchLog[2]['template']);
+        $this->assertEquals('email',      $spy->fetchLog[2]['params']['name']);
+        $this->assertEquals('<form-errors><form-field><form-field>', $result);
     }
 }

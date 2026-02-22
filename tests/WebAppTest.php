@@ -20,7 +20,11 @@ use Dynart\Micro\ViewInterface;
 use Dynart\Micro\MiddlewareInterface;
 use Dynart\Micro\MicroException;
 use Dynart\Micro\Middleware\AttributeProcessor;
+use Dynart\Micro\Middleware\JwtValidator;
 use Dynart\Micro\AttributeHandler\RouteAttributeHandler;
+use Dynart\Micro\AttributeHandler\AuthorizeAttributeHandler;
+use Dynart\Micro\AttributeHandler\AllowAnonymousAttributeHandler;
+use Dynart\Micro\JwtAuthInterface;
 use Dynart\Micro\EventServiceInterface;
 
 use Dynart\Micro\Test\ResettableMicro;
@@ -234,6 +238,28 @@ final class WebAppTest extends TestCase
         $this->webApp->useRouteAttributes();
         $this->assertTrue(Micro::hasInterface(AttributeProcessor::class));
         $this->assertTrue(Micro::hasInterface(RouteAttributeHandler::class));
+        $this->assertTrue($this->webApp->hasMiddleware(AttributeProcessor::class));
+    }
+
+    public function testUseJwtAuthRegistersJwtClasses(): void {
+        $this->setUpWebAppForProcess();
+        $this->webApp->useJwtAuth();
+        $this->assertTrue(Micro::hasInterface(JwtAuthInterface::class));
+        $this->assertTrue(Micro::hasInterface(AuthorizeAttributeHandler::class));
+        $this->assertTrue(Micro::hasInterface(AllowAnonymousAttributeHandler::class));
+    }
+
+    public function testUseJwtAuthAddsMiddlewares(): void {
+        $this->setUpWebAppForProcess();
+        $this->webApp->useJwtAuth();
+        $this->assertTrue($this->webApp->hasMiddleware(AttributeProcessor::class));
+        $this->assertTrue($this->webApp->hasMiddleware(JwtValidator::class));
+    }
+
+    public function testUseJwtAuthIsIdempotentForAttributeProcessor(): void {
+        $this->setUpWebAppForProcess();
+        $this->webApp->useJwtAuth();
+        $this->webApp->useJwtAuth(); // second call must not duplicate the middleware
         $this->assertTrue($this->webApp->hasMiddleware(AttributeProcessor::class));
     }
 }
