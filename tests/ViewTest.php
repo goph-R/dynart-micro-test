@@ -4,6 +4,7 @@ use PHPUnit\Framework\TestCase;
 use Dynart\Micro\Config;
 use Dynart\Micro\View;
 use Dynart\Micro\AbstractApp;
+use Dynart\Micro\MicroException;
 
 /**
  * @covers \Dynart\Micro\View
@@ -143,6 +144,37 @@ final class ViewTest extends TestCase
         $this->view->setTheme('~/views/theme');
         $content = $this->view->fetch('empty');
         $this->assertEquals('overwritten', $content);
+    }
+
+    // --- exists ---
+
+    public function testExistsForAnExistingTemplate(): void {
+        $this->assertTrue($this->view->exists('empty'));
+    }
+
+    public function testExistsForAMissingTemplate(): void {
+        $this->assertFalse($this->view->exists('no-such-template'));
+    }
+
+    public function testExistsWithANamespace(): void {
+        $this->view->addFolder('namespace', '~/views/namespace');
+        $this->assertTrue($this->view->exists('namespace:text'));
+        $this->assertFalse($this->view->exists('namespace:no-such-template'));
+    }
+
+    /**
+     * A template that only the theme provides has to be found, otherwise an optional template
+     * could never be added by a theme.
+     */
+    public function testExistsFindsATemplateProvidedOnlyByTheTheme(): void {
+        $this->view->addFolder('namespace', '~/views/namespace');
+        $this->view->setTheme('~/views/theme');
+        $this->assertTrue($this->view->exists('namespace:theme'));
+    }
+
+    public function testExistsThrowsForAnUnknownNamespace(): void {
+        $this->expectException(MicroException::class);
+        $this->view->exists('nosuchnamespace:text');
     }
 
     public function testFetchWhenNamespaceAddedAndUsedInTheViewPathShouldRenderThat(): void {
