@@ -146,6 +146,42 @@ final class ViewTest extends TestCase
         $this->assertEquals('overwritten', $content);
     }
 
+    // --- Re-entrancy ---
+
+    /**
+     * A partial fetched from inside a template that uses a layout must not inherit that layout,
+     * or the whole page ends up rendered into the partial's output. `Form::fetch()` does exactly
+     * this, which is why forms and layouts could not be combined before.
+     */
+    public function testANestedFetchDoesNotInheritTheOuterLayout(): void {
+        $this->view->useLayout('layout');
+        $inner = $this->view->fetch('empty');
+        $this->assertNotEquals('layout', $inner, 'the nested fetch rendered the outer layout');
+    }
+
+    public function testTheOuterLayoutStillAppliesAfterANestedFetch(): void {
+        $content = $this->view->fetch('empty-with-layout');
+        $this->assertEquals('layout', $content);
+    }
+
+    /**
+     * Blocks accumulate on purpose, so several templates can fill the same one - but only within
+     * one render. Without clearing them at the top level, a template rendered earlier in the
+     * request (a mail, a partial fetched from a service) leaves its content in the next page.
+     */
+    public function testBlocksDoNotLeakBetweenTopLevelFetches(): void {
+        $this->assertEquals('[A]', $this->view->fetch('block-page'));
+        $this->assertEquals('[A]', $this->view->fetch('block-page'), 'the block accumulated across renders');
+    }
+
+    /**
+     * Within one render they still accumulate, which is what lets a partial contribute to a
+     * block its parent opened.
+     */
+    public function testBlocksStillAccumulateWithinOneRender(): void {
+        $this->assertEquals('[AB]', $this->view->fetch('block-nested'));
+    }
+
     // --- exists ---
 
     public function testExistsForAnExistingTemplate(): void {

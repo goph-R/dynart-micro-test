@@ -344,9 +344,9 @@ final class FormTest extends TestCase {
         $spy = $this->setupSpyView();
         $result = $this->form->fetchErrors();
         $this->assertCount(1, $spy->fetchLog);
-        $this->assertEquals('form-errors', $spy->fetchLog[0]['template']);
+        $this->assertEquals(Form::VIEW_ERRORS, $spy->fetchLog[0]['template']);
         $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
-        $this->assertEquals('<form-errors>', $result);
+        $this->assertEquals('<'.Form::VIEW_ERRORS.'>', $result);
     }
 
     public function testFetchFieldDelegatesToView(): void {
@@ -354,11 +354,11 @@ final class FormTest extends TestCase {
         $field = ['type' => 'text'];
         $result = $this->form->fetchField('email', $field);
         $this->assertCount(1, $spy->fetchLog);
-        $this->assertEquals('form-field', $spy->fetchLog[0]['template']);
+        $this->assertEquals(Form::VIEW_FIELD, $spy->fetchLog[0]['template']);
         $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
         $this->assertEquals('email', $spy->fetchLog[0]['params']['name']);
         $this->assertEquals($field, $spy->fetchLog[0]['params']['field']);
-        $this->assertEquals('<form-field>', $result);
+        $this->assertEquals('<'.Form::VIEW_FIELD.'>', $result);
     }
 
     public function testFetchInputDelegatesToView(): void {
@@ -366,11 +366,11 @@ final class FormTest extends TestCase {
         $field = ['type' => 'text'];
         $result = $this->form->fetchInput('email', $field);
         $this->assertCount(1, $spy->fetchLog);
-        $this->assertEquals('form-input', $spy->fetchLog[0]['template']);
+        $this->assertEquals(Form::VIEW_INPUT, $spy->fetchLog[0]['template']);
         $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
         $this->assertEquals('email', $spy->fetchLog[0]['params']['name']);
         $this->assertEquals($field, $spy->fetchLog[0]['params']['field']);
-        $this->assertEquals('<form-input>', $result);
+        $this->assertEquals('<'.Form::VIEW_INPUT.'>', $result);
     }
 
     public function testFetchCombinesErrorsAndAllFields(): void {
@@ -382,12 +382,12 @@ final class FormTest extends TestCase {
         $result = $this->form->fetch();
         // 1 fetchErrors call + 1 fetchField call per field
         $this->assertCount(3, $spy->fetchLog);
-        $this->assertEquals('form-errors', $spy->fetchLog[0]['template']);
-        $this->assertEquals('form-field', $spy->fetchLog[1]['template']);
+        $this->assertEquals(Form::VIEW_ERRORS, $spy->fetchLog[0]['template']);
+        $this->assertEquals(Form::VIEW_FIELD, $spy->fetchLog[1]['template']);
         $this->assertEquals('name',       $spy->fetchLog[1]['params']['name']);
-        $this->assertEquals('form-field', $spy->fetchLog[2]['template']);
+        $this->assertEquals(Form::VIEW_FIELD, $spy->fetchLog[2]['template']);
         $this->assertEquals('email',      $spy->fetchLog[2]['params']['name']);
-        $this->assertEquals('<form-errors><form-field><form-field>', $result);
+        $this->assertEquals('<'.Form::VIEW_ERRORS.'><'.Form::VIEW_FIELD.'><'.Form::VIEW_FIELD.'>', $result);
     }
 
     // --- Input names & ids ---
