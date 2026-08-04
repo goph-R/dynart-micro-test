@@ -37,6 +37,27 @@ class AlwaysPassesValidator extends AbstractValidator {
     }
 }
 
+class StubTranslation implements \Dynart\Micro\TranslationInterface {
+
+    public function __construct(private array $texts = []) {}
+
+    public function add(string $namespace, string $folder): void {}
+    public function allLocales(): array { return ['en']; }
+    public function hasMultiLocales(): bool { return false; }
+    public function locale(): string { return 'en'; }
+    public function setLocale(string $locale): void {}
+
+    public function get(string $id, array $params = []): string {
+        return $this->texts[$id] ?? '#'.$id.'#';
+    }
+}
+
+class HookSpyForm extends Form {
+    public array $calls = [];
+    protected function beforeValidate(): void { $this->calls[] = 'beforeValidate'; }
+    protected function afterValidate(bool $valid): void { $this->calls[] = 'afterValidate:'.($valid ? 'true' : 'false'); }
+}
+
 /**
  * @covers \Dynart\Micro\Form
  */
@@ -367,5 +388,198 @@ final class FormTest extends TestCase {
         $this->assertEquals('form-field', $spy->fetchLog[2]['template']);
         $this->assertEquals('email',      $spy->fetchLog[2]['params']['name']);
         $this->assertEquals('<form-errors><form-field><form-field>', $result);
+    }
+
+    // --- Input names & ids ---
+
+    public function testInputNameGroupsFieldsUnderTheFormName(): void {
+        $this->assertEquals('form[email]', $this->form->inputName('email'));
+    }
+
+    public function testInputNameIsPlainForUnnamedForm(): void {
+        $form = new Form(new Request(), $this->session, '', false);
+        $this->assertEquals('email', $form->inputName('email'));
+    }
+
+    public function testInputIdUsesUnderscore(): void {
+        $this->assertEquals('form_email', $this->form->inputId('email'));
+    }
+
+    public function testInputIdIsPlainForUnnamedForm(): void {
+        $form = new Form(new Request(), $this->session, '', false);
+        $this->assertEquals('email', $form->inputId('email'));
+    }
+
+    public function testIdByNameAndFieldUsesGeneratedIdWhenNoneGiven(): void {
+        $this->assertEquals('form_email', $this->form->idByNameAndField('email', ['type' => 'text']));
+    }
+
+    public function testIdByNameAndFieldPrefersExplicitId(): void {
+        $this->assertEquals('custom', $this->form->idByNameAndField('email', ['type' => 'text', 'id' => 'custom']));
+    }
+
+    /**
+     * The rendered input name has to be the one bind() reads back, otherwise a named form
+     * never receives its own values.
+     */
+    public function testInputNameRoundTripsThroughBind(): void {
+        $form = new Form(new Request(), $this->session, 'contact', false);
+        $form->addFields(['email' => ['type' => 'text']]);
+        $this->assertEquals('contact[email]', $form->inputName('email'));
+        // what PHP builds in $_REQUEST from name="contact[email]"
+        $_REQUEST['contact'] = ['email' => 'joe@test.com'];
+        $form->bind();
+        $this->assertEquals('joe@test.com', $form->value('email'));
+    }
+
+    public function testBindHandlesNonArrayRequestValue(): void {
+        $_REQUEST['form'] = 'not-an-array';
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->bind();
+        $this->assertEquals([], $form->values());
+    }
+
+    // --- Per field required ---
+
+    public function testAddFieldsRespectsPerFieldRequiredFlag(): void {
+        $this->form->addFields([
+            'email' => ['type' => 'text'],
+            'notes' => ['type' => 'text', 'required' => false],
+        ]);
+        $this->assertTrue($this->form->required('email'));
+        $this->assertFalse($this->form->required('notes'));
+    }
+
+    public function testAddFieldsPerFieldFlagOverridesFalseDefault(): void {
+        $this->form->addFields([
+            'notes' => ['type' => 'text'],
+            'email' => ['type' => 'text', 'required' => true],
+        ], false);
+        $this->assertFalse($this->form->required('notes'));
+        $this->assertTrue($this->form->required('email'));
+    }
+
+    // --- Name & csrf setters ---
+
+    public function testSetName(): void {
+        $this->form->setName('contact');
+        $this->assertEquals('contact', $this->form->name());
+        $this->assertEquals('contact[email]', $this->form->inputName('email'));
+        $this->assertEquals('form.contact.csrf', $this->form->csrfSessionName());
+    }
+
+    public function testSetCsrf(): void {
+        $this->assertTrue($this->form->csrf());
+        $this->form->setCsrf(false);
+        $this->assertFalse($this->form->csrf());
+        $this->form->generateCsrf();
+        $this->assertArrayNotHasKey('_csrf', $this->form->fields());
+    }
+
+    // --- Errors ---
+
+    public function testAddErrorGoesToFormErrors(): void {
+        $this->form->addError('Something went wrong.');
+        $this->assertEquals(['Something went wrong.'], $this->form->formErrors());
+        $this->assertTrue($this->form->hasErrors());
+    }
+
+    public function testAddFieldErrorKeepsTheFirstError(): void {
+        $this->form->addFieldError('email', 'First.');
+        $this->form->addFieldError('email', 'Second.');
+        $this->assertEquals('First.', $this->form->error('email'));
+    }
+
+    public function testErrorsReturnsFieldErrorsOnly(): void {
+        $this->form->addError('Form level.');
+        $this->form->addFieldError('email', 'Field level.');
+        $this->assertEquals(['email' => 'Field level.'], $this->form->errors());
+        $this->assertEquals(['Form level.'], $this->form->formErrors());
+    }
+
+    public function testHasErrorsIsFalseOnFreshForm(): void {
+        $this->assertFalse($this->form->hasErrors());
+    }
+
+    // --- Translated messages ---
+
+    public function testRequiredMessageUsesDefaultWithoutTranslation(): void {
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->validate();
+        $this->assertEquals(Form::DEFAULT_MESSAGE_REQUIRED, $form->error('name'));
+    }
+
+    public function testRequiredMessageIsTranslated(): void {
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->setTranslation(new StubTranslation(['micro:form_required' => 'Kötelező.']));
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->validate();
+        $this->assertEquals('Kötelező.', $form->error('name'));
+    }
+
+    public function testRequiredMessageFallsBackWhenTranslationMissing(): void {
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->setTranslation(new StubTranslation([]));
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->validate();
+        $this->assertEquals(Form::DEFAULT_MESSAGE_REQUIRED, $form->error('name'));
+    }
+
+    public function testCsrfMessageIsTranslated(): void {
+        $this->form->setTranslation(new StubTranslation(['micro:form_csrf_invalid' => 'Érvénytelen token.']));
+        $this->form->generateCsrf();
+        $this->form->addValues(['_csrf' => 'bad-token']);
+        $this->form->validate();
+        $this->assertEquals(['Érvénytelen token.'], $this->form->formErrors());
+    }
+
+    public function testCsrfMessageUsesDefaultWithoutTranslation(): void {
+        $this->form->generateCsrf();
+        $this->form->addValues(['_csrf' => 'bad-token']);
+        $this->form->validate();
+        $this->assertEquals([Form::DEFAULT_MESSAGE_CSRF_INVALID], $this->form->formErrors());
+    }
+
+    // --- Lifecycle hooks ---
+
+    public function testProcessCallsHooksInOrder(): void {
+        $_REQUEST['form'] = ['name' => 'Joe'];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $form = new HookSpyForm(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $this->assertTrue($form->process('POST'));
+        $this->assertEquals(['beforeValidate', 'afterValidate:true'], $form->calls);
+    }
+
+    public function testProcessHooksReportInvalidResult(): void {
+        $_REQUEST['form'] = ['name' => ''];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $form = new HookSpyForm(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $this->assertFalse($form->process('POST'));
+        $this->assertEquals(['beforeValidate', 'afterValidate:false'], $form->calls);
+    }
+
+    public function testProcessSkipsHooksWhenHttpMethodDoesNotMatch(): void {
+        $_SERVER['REQUEST_METHOD'] = 'GET';
+        $form = new HookSpyForm(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->process('POST');
+        $this->assertEquals([], $form->calls);
+    }
+
+    /**
+     * generateCsrf() runs at the end of process(), so it must not clear the bound values —
+     * otherwise a form redisplayed after a failed validation loses everything the user typed.
+     */
+    public function testProcessKeepsBoundValuesAfterCsrfGeneration(): void {
+        $_REQUEST['form'] = ['name' => 'Joe', '_csrf' => 'whatever'];
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $form = new Form(new Request(), $this->session, 'form');
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->process('POST');
+        $this->assertEquals('Joe', $form->value('name'));
     }
 }
