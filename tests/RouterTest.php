@@ -168,4 +168,82 @@ final class RouterTest extends TestCase
         $this->assertEquals($callable, $routes['GET']['/']);
         $this->assertEquals($callable, $routes['POST']['/']);
     }
+
+    // --- Catch-all routes ---
+
+    /**
+     * @return Router A router whose current path is the given one
+     */
+    private function routerAt(string $path): Router {
+        $this->mockConfigGetWithRewrite();
+        $this->request->method('httpMethod')->will($this->returnValue('GET'));
+        $this->request->method('get')->will($this->returnValue($path));
+        return new Router($this->config, $this->request);
+    }
+
+    public function testCatchAllCapturesTheWholeRemainderAsOneParameter(): void {
+        $router = $this->routerAt('/docs/guide/install');
+        $router->add('/docs/*', ['Test', 'callable']);
+        $this->assertEquals([['Test', 'callable'], ['guide/install']], $router->matchCurrentRoute());
+    }
+
+    public function testCatchAllCapturesASingleSegmentToo(): void {
+        $router = $this->routerAt('/docs/guide');
+        $router->add('/docs/*', ['Test', 'callable']);
+        $this->assertEquals([['Test', 'callable'], ['guide']], $router->matchCurrentRoute());
+    }
+
+    /**
+     * `/docs/*` is "docs plus something", so the bare prefix is a different route.
+     */
+    public function testCatchAllNeedsAtLeastOneSegment(): void {
+        $router = $this->routerAt('/docs');
+        $router->add('/docs/*', ['Test', 'callable']);
+        $this->assertEquals(Router::ROUTE_NOT_FOUND, $router->matchCurrentRoute());
+    }
+
+    public function testCatchAllAtTheRootMatchesEverything(): void {
+        $router = $this->routerAt('/about/contact');
+        $router->add('/*', ['Test', 'callable']);
+        $this->assertEquals([['Test', 'callable'], ['about/contact']], $router->matchCurrentRoute());
+    }
+
+    public function testCatchAllAfterASegmentVariable(): void {
+        $router = $this->routerAt('/a/b/c/d');
+        $router->add('/a/?/*', ['Test', 'callable']);
+        $this->assertEquals([['Test', 'callable'], ['b', 'c/d']], $router->matchCurrentRoute());
+    }
+
+    /**
+     * The whole point of the two-pass match: a catch-all registered first must not swallow an
+     * exact route registered after it.
+     */
+    public function testAnExactRouteWinsOverACatchAllRegisteredBefore(): void {
+        $router = $this->routerAt('/login');
+        $router->add('/*', ['Test', 'catchAll']);
+        $router->add('/login', ['Test', 'exact']);
+        $this->assertEquals([['Test', 'exact'], []], $router->matchCurrentRoute());
+    }
+
+    public function testASegmentRouteWinsOverACatchAll(): void {
+        $router = $this->routerAt('/post/hello');
+        $router->add('/*', ['Test', 'catchAll']);
+        $router->add('/post/?', ['Test', 'segment']);
+        $this->assertEquals([['Test', 'segment'], ['hello']], $router->matchCurrentRoute());
+    }
+
+    public function testTheCatchAllStillMatchesWhatNothingElseDoes(): void {
+        $router = $this->routerAt('/about/contact');
+        $router->add('/*', ['Test', 'catchAll']);
+        $router->add('/login', ['Test', 'exact']);
+        $this->assertEquals([['Test', 'catchAll'], ['about/contact']], $router->matchCurrentRoute());
+    }
+
+    public function testHasCatchAll(): void {
+        $router = $this->routerAt('/');
+        $this->assertTrue($router->hasCatchAll('/docs/*'));
+        $this->assertTrue($router->hasCatchAll('/*'));
+        $this->assertFalse($router->hasCatchAll('/docs/?'));
+        $this->assertFalse($router->hasCatchAll('/docs'));
+    }
 }

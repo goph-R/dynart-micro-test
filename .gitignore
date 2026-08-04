@@ -1,0 +1,8 @@
+/vendor/
+/logs/*
+!/logs/.gitkeep
+/reports/
+/docs/
+/.phpdoc/
+.idea/
+.phpunit.result.cache
