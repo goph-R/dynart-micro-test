@@ -34,14 +34,23 @@ final class CliCommandsTest extends TestCase
         $this->assertEquals('migrate', $this->commands->current());
     }
 
-    public function testMatchCurrentReturnsNullForUnknownCommand(): void {
+    public function testMatchCurrentReturnsNotFoundForUnknownCommand(): void {
         $this->setArgv(['script.php', 'unknown']);
-        $this->assertNull($this->commands->matchCurrent());
+        $this->assertSame(CliCommands::COMMAND_NOT_FOUND, $this->commands->matchCurrent());
     }
 
-    public function testMatchCurrentReturnsNullWhenNoArgv(): void {
+    public function testMatchCurrentReturnsNotFoundWhenNoArgv(): void {
         $this->setArgv(['script.php']);
-        $this->assertNull($this->commands->matchCurrent());
+        $this->assertSame(CliCommands::COMMAND_NOT_FOUND, $this->commands->matchCurrent());
+    }
+
+    public function testHasIsFalseForUnknownCommand(): void {
+        $this->assertFalse($this->commands->has('unknown'));
+    }
+
+    public function testHasIsTrueForAddedCommand(): void {
+        $this->commands->add('test', function() { return 'ok'; });
+        $this->assertTrue($this->commands->has('test'));
     }
 
     public function testMatchCurrentReturnsCallableWithNoParams(): void {
