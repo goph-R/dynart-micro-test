@@ -82,7 +82,7 @@
             "dist": {
                 "type": "path",
                 "url": "../dynart-micro",
-                "reference": "83a199c3e67705496c0d9b5ae12de4c60bbb007d"
+                "reference": "faeee3195692880cfe466ae3b11ee500432c679c"
             },
             "require": {
                 "ext-ctype": "*",
@@ -2035,5 +2035,5 @@
         "php": ">=8.0"
     },
     "platform-dev": {},
-    "plugin-api-version": "2.9.0"
+    "plugin-api-version": "2.6.0"
 }

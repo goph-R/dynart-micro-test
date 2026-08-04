@@ -59,6 +59,20 @@ class HookSpyForm extends Form {
 }
 
 /**
+ * A request whose uploaded files are whatever the test says they are
+ */
+class FileStubRequest extends Request {
+
+    public function __construct(private array $files = []) {
+        parent::__construct();
+    }
+
+    public function uploadedFile(string $name): \Dynart\Micro\UploadedFile|array|null {
+        return $this->files[$name] ?? null;
+    }
+}
+
+/**
  * @covers \Dynart\Micro\Form
  */
 final class FormTest extends TestCase {
@@ -123,6 +137,87 @@ final class FormTest extends TestCase {
     public function testValidateCsrfReturnsTrueWhenCsrfDisabled(): void {
         $form = new Form(new Request(), $this->session, 'form', false);
         $this->assertTrue($form->validateCsrf());
+    }
+
+    /**
+     * The one that used to pass
+     *
+     * `null == ''` is true in PHP, so a loose comparison let any form the visitor had never
+     * rendered be posted from another site with an empty token - which is the whole attack.
+     */
+    public function testValidateCsrfFailsWhenTheSessionHasNoToken(): void {
+        $this->form->setValues(['_csrf' => '']);
+        $this->assertFalse($this->form->validateCsrf());
+    }
+
+    public function testValidateCsrfFailsWhenTheFieldIsMissingEntirely(): void {
+        $this->form->generateCsrf();
+        $this->form->setValues([]);
+        $this->assertFalse($this->form->validateCsrf());
+    }
+
+    public function testValidateCsrfFailsWhenBothAreEmpty(): void {
+        $this->session->set($this->form->csrfSessionName(), '');
+        $this->form->setValues(['_csrf' => '']);
+        $this->assertFalse($this->form->validateCsrf());
+    }
+
+    // --- Uploaded files ---
+
+    /**
+     * An upload arrives in `$_FILES`, so without binding it a **required** file field could never
+     * be satisfied however many files were attached.
+     */
+    public function testBindTakesTheUploadedFileOfAFileField(): void {
+        $request = new FileStubRequest(['upload' => ['photo' => $this->uploadedFile('holiday.jpg')]]);
+        $form = new Form($request, $this->session, 'upload', false);
+        $form->addFields(['photo' => ['type' => 'file']]);
+        $form->bind();
+        $this->assertSame('holiday.jpg', $form->value('photo'));
+        $this->assertSame('holiday.jpg', $form->uploadedFile('photo')->name());
+    }
+
+    public function testARequiredFileFieldValidatesWhenAFileWasSent(): void {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $request = new FileStubRequest(['upload' => ['photo' => $this->uploadedFile('holiday.jpg')]]);
+        $form = new Form($request, $this->session, 'upload', false);
+        $form->addFields(['photo' => ['type' => 'file']]);
+        $this->assertTrue($form->process());
+    }
+
+    public function testARequiredFileFieldFailsWhenNothingWasSent(): void {
+        $_SERVER['REQUEST_METHOD'] = 'POST';
+        $request = new FileStubRequest([]);
+        $form = new Form($request, $this->session, 'upload', false);
+        $form->addFields(['photo' => ['type' => 'file']]);
+        $this->assertFalse($form->process());
+        $this->assertNotEmpty($form->error('photo'));
+        $this->assertNull($form->uploadedFile('photo'));
+    }
+
+    /**
+     * The browser sends the field with `UPLOAD_ERR_NO_FILE` when the input was left alone, which
+     * is not a file - taking it would make a required field pass with nothing behind it.
+     */
+    public function testAnEmptyFileInputIsNotAFile(): void {
+        $request = new FileStubRequest(['upload' => ['photo' => $this->uploadedFile('', UPLOAD_ERR_NO_FILE)]]);
+        $form = new Form($request, $this->session, 'upload', false);
+        $form->addFields(['photo' => ['type' => 'file']]);
+        $form->bind();
+        $this->assertNull($form->uploadedFile('photo'));
+        $this->assertNull($form->value('photo'));
+    }
+
+    public function testAnUnnamedFormReadsTheFileByTheFieldName(): void {
+        $request = new FileStubRequest(['photo' => $this->uploadedFile('holiday.jpg')]);
+        $form = new Form($request, $this->session, '', false);
+        $form->addFields(['photo' => ['type' => 'file']]);
+        $form->bind();
+        $this->assertSame('holiday.jpg', $form->uploadedFile('photo')->name());
+    }
+
+    private function uploadedFile(string $name, int $error = UPLOAD_ERR_OK): \Dynart\Micro\UploadedFile {
+        return new \Dynart\Micro\UploadedFile($name, sys_get_temp_dir().'/'.$name, $error, 'image/jpeg', 10);
     }
 
     // --- Name & Fields ---

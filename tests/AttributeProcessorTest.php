@@ -47,6 +47,17 @@ class AttributeTestControllerOther {
     public function index() {}
 }
 
+#[TestClassAttribute('from-the-base')]
+abstract class AttributeTestBase {
+}
+
+class AttributeTestInheriting extends AttributeTestBase {
+}
+
+#[TestClassAttribute('from-the-subclass')]
+class AttributeTestOverriding extends AttributeTestBase {
+}
+
 class TestClassAttributeHandler implements AttributeHandlerInterface {
     public array $handled = [];
 
@@ -130,6 +141,43 @@ final class AttributeProcessorTest extends TestCase
         $this->assertCount(1, $handler->handled);
         $this->assertEquals(AttributeTestController::class, $handler->handled[0]['class']);
         $this->assertEquals('my-controller', $handler->handled[0]['label']);
+    }
+
+    /**
+     * PHP attributes are not inherited, so without walking the chain an `#[Authorize]` on an
+     * abstract base controller would apply to nothing - silently, and failing *open*.
+     */
+    public function testAClassAttributeIsInheritedFromAnAbstractBase(): void {
+        Micro::add(TestClassAttributeHandler::class);
+        Micro::add(AttributeTestInheriting::class);
+
+        $processor = new AttributeProcessor();
+        $processor->add(TestClassAttributeHandler::class);
+        $processor->run();
+
+        $handled = Micro::get(TestClassAttributeHandler::class)->handled;
+        $this->assertContains(
+            ['class' => AttributeTestInheriting::class, 'label' => 'from-the-base'],
+            $handled
+        );
+    }
+
+    /**
+     * The nearest declaration wins, so a subclass can demand more than its base does
+     */
+    public function testASubclassOwnAttributeWinsOverTheBaseOne(): void {
+        Micro::add(TestClassAttributeHandler::class);
+        Micro::add(AttributeTestOverriding::class);
+
+        $processor = new AttributeProcessor();
+        $processor->add(TestClassAttributeHandler::class);
+        $processor->run();
+
+        $handled = Micro::get(TestClassAttributeHandler::class)->handled;
+        $this->assertSame(
+            [['class' => AttributeTestOverriding::class, 'label' => 'from-the-subclass']],
+            $handled
+        );
     }
 
     public function testRunProcessesPropertyAttributes(): void {
