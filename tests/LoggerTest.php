@@ -33,6 +33,12 @@ final class LoggerTest extends TestCase {
             ->method('getArray')
             ->will($this->returnValue([]));
 
+        // the directory goes through `getFullPath()`, so `~/logs` means the application root
+        // rather than a folder called `~` - here it is already absolute, so hand it back
+        $config->expects($this->any())
+            ->method('getFullPath')
+            ->will($this->returnArgument(0));
+
         $this->logger = new Logger($config);
     }
 
