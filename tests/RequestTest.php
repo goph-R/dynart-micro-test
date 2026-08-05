@@ -1,7 +1,13 @@
 <?php
+// `src/` is not on the autoloader - see MicroTest, which does the same
+require_once dirname(dirname(__FILE__)).'/src/ResettableMicro.php';
+require_once dirname(dirname(__FILE__)).'/src/StubConfig.php';
 
 use PHPUnit\Framework\TestCase;
+use Dynart\Micro\ConfigInterface;
 use Dynart\Micro\Request;
+use Dynart\Micro\Test\ResettableMicro;
+use Dynart\Micro\Test\StubConfig;
 use Dynart\Micro\UploadedFile;
 use Dynart\Micro\AbstractApp;
 
@@ -25,6 +31,10 @@ final class RequestTest extends TestCase {
         $this->request = new Request();
         $this->request->setHeader('test_header', 'test_value');
         $this->request->setBody('{"test_key": "test_value"}');
+    }
+
+    protected function tearDown(): void {
+        ResettableMicro::reset(); // the trusted proxies are read from the container
     }
 
     public function testGetReturnsValueFromGlobalRequestArray(): void {
@@ -64,18 +74,62 @@ final class RequestTest extends TestCase {
         $this->assertEquals('remote', $this->request->ip());
     }
 
-    public function testIpGivenHttpXForwardedForShouldReturnWithIt(): void {
-        $_SERVER['HTTP_X_FORWARDED_FOR'] = 'forwarded';
-        $this->assertEquals('forwarded', $this->request->ip());
+    public function testIpGivenNoIpShouldReturnNull(): void {
+        $this->assertNull($this->request->ip());
     }
 
-    public function testIpGivenHttpClientIpShouldReturnWithIt(): void {
-        $_SERVER['HTTP_CLIENT_IP'] = 'client';
+    /**
+     * A header is whatever the client typed
+     *
+     * `ip()` used to return `X-Forwarded-For` whenever it was present, so anything counting or
+     * blocking by address could be handed a different one on every request - or somebody else's,
+     * which is worse, because then the count belongs to them.
+     */
+    public function testIpIgnoresForwardedHeadersFromSomebodyWhoIsNotATrustedProxy(): void {
+        $_SERVER['REMOTE_ADDR'] = 'remote';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = 'spoofed';
+        $_SERVER['HTTP_CLIENT_IP'] = 'spoofed-too';
+        $this->assertEquals('remote', $this->request->ip());
+    }
+
+    /**
+     * With nothing configured there is no proxy, so a forwarded header is nobody's word
+     */
+    public function testIpIgnoresForwardedHeadersWhenNoProxyIsTrusted(): void {
+        $this->withTrustedProxies('');
+        $_SERVER['REMOTE_ADDR'] = 'proxy';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = 'client';
+        $this->assertEquals('proxy', $this->request->ip());
+    }
+
+    public function testIpBelievesATrustedProxy(): void {
+        $this->withTrustedProxies('proxy');
+        $_SERVER['REMOTE_ADDR'] = 'proxy';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = 'client';
         $this->assertEquals('client', $this->request->ip());
     }
 
-    public function testIpGivenNoIpShouldReturnNull(): void {
-        $this->assertNull($this->request->ip());
+    /**
+     * The chain reads client first, each hop appending the one it heard from. Everything left of
+     * the last address a machine we trust actually saw was written by somebody we cannot check.
+     */
+    public function testIpTakesTheLastAddressATrustedProxyActuallySaw(): void {
+        $this->withTrustedProxies('proxy, inner');
+        $_SERVER['REMOTE_ADDR'] = 'proxy';
+        $_SERVER['HTTP_X_FORWARDED_FOR'] = 'forged, client, inner';
+        $this->assertEquals('client', $this->request->ip());
+    }
+
+    public function testIpFallsBackToTheProxyWhenItForwardedNothing(): void {
+        $this->withTrustedProxies('proxy');
+        $_SERVER['REMOTE_ADDR'] = 'proxy';
+        $this->assertEquals('proxy', $this->request->ip());
+    }
+
+    private function withTrustedProxies(string $value): void {
+        $config = new StubConfig([Request::CONFIG_TRUSTED_PROXIES => $value]);
+        ResettableMicro::reset();
+        ResettableMicro::set(ConfigInterface::class, $config);
     }
 
     public function testHeaderShouldReturnHeaderValue(): void {
