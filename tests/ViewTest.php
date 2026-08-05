@@ -208,6 +208,40 @@ final class ViewTest extends TestCase
         $this->assertTrue($this->view->exists('namespace:theme'));
     }
 
+    // --- a namespace that refuses to be themed ---
+
+    /**
+     * A theme overriding one template otherwise reaches every template there is
+     *
+     * For an administration area that is not restyling a page, it is somebody locked out of
+     * their own site: the layout a theme replaced is the one the way in is rendered with.
+     */
+    public function testANamespaceCanRefuseToBeThemed(): void {
+        $this->view->addFolder('namespace', '~/views/namespace', false);
+        $this->view->setTheme('~/views/theme');
+        $this->assertSame('namespace-own', $this->view->fetch('namespace:theme'));
+    }
+
+    public function testANamespaceIsThemeableUnlessItSaysOtherwise(): void {
+        $this->view->addFolder('namespace', '~/views/namespace');
+        $this->assertTrue($this->view->isThemeable('namespace'));
+        $this->view->addFolder('locked', '~/views/namespace', false);
+        $this->assertFalse($this->view->isThemeable('locked'));
+        // one nobody registered cannot be less themeable than the default
+        $this->assertTrue($this->view->isThemeable('never-registered'));
+    }
+
+    /**
+     * `exists()` has to agree with `fetch()`, or an optional template would be reported present
+     * and then render the wrong file - or not be found at all
+     */
+    public function testExistsIgnoresTheThemeForANamespaceThatRefusesIt(): void {
+        $this->view->addFolder('namespace', '~/views/namespace', false);
+        $this->view->setTheme('~/views/theme');
+        $this->assertTrue($this->view->exists('namespace:theme'));   // its own copy
+        $this->assertFalse($this->view->exists('namespace:only-in-theme'));
+    }
+
     public function testExistsThrowsForAnUnknownNamespace(): void {
         $this->expectException(MicroException::class);
         $this->view->exists('nosuchnamespace:text');
