@@ -9,6 +9,8 @@ use Dynart\Micro\Session;
 use Dynart\Micro\AbstractValidator;
 use Dynart\Micro\Micro;
 use Dynart\Micro\ViewInterface;
+use Dynart\Micro\FormWidgets;
+use Dynart\Micro\LoggerInterface;
 use Dynart\Micro\Test\ResettableMicro;
 
 class SpyView extends \Dynart\Micro\View {
@@ -21,6 +23,23 @@ class SpyView extends \Dynart\Micro\View {
     public function fetch(string $__viewPath, array $__vars = []): string {
         $this->fetchLog[] = ['template' => $__viewPath, 'params' => $__vars];
         return "<{$__viewPath}>";
+    }
+}
+
+/**
+ * A logger that only remembers, so a test can assert something was reported
+ */
+class SpyLogger extends \Psr\Log\AbstractLogger implements LoggerInterface {
+    public array $warnings = [];
+
+    public function level(): string {
+        return 'warning';
+    }
+
+    public function log($level, $message, array $context = []): void {
+        if ($level === 'warning') {
+            $this->warnings[] = (string)$message;
+        }
     }
 }
 
@@ -456,16 +475,51 @@ final class FormTest extends TestCase {
         $this->assertEquals('<'.Form::VIEW_FIELD.'>', $result);
     }
 
-    public function testFetchInputDelegatesToView(): void {
+    /**
+     * The input's template comes from the registry, not from a constant
+     *
+     * `VIEW_ERRORS` and `VIEW_FIELD` above are still constants, because there is one errors list
+     * and one label/error wrapper. There are as many inputs as there are field types, which is
+     * why that one moved to `FormWidgets` - a constant only the one subclass can set is a
+     * mechanism with room for exactly one contributor.
+     */
+    public function testFetchInputRendersTheWidgetRegisteredForTheType(): void {
         $spy = $this->setupSpyView();
+        Micro::add(FormWidgets::class);
         $field = ['type' => 'text'];
         $result = $this->form->fetchInput('email', $field);
         $this->assertCount(1, $spy->fetchLog);
-        $this->assertEquals(Form::VIEW_INPUT, $spy->fetchLog[0]['template']);
+        $this->assertEquals(FormWidgets::VIEW_PREFIX.'text', $spy->fetchLog[0]['template']);
         $this->assertSame($this->form, $spy->fetchLog[0]['params']['form']);
         $this->assertEquals('email', $spy->fetchLog[0]['params']['name']);
         $this->assertEquals($field, $spy->fetchLog[0]['params']['field']);
-        $this->assertEquals('<'.Form::VIEW_INPUT.'>', $result);
+        $this->assertEquals('<'.FormWidgets::VIEW_PREFIX.'text>', $result);
+    }
+
+    /**
+     * A field with no type at all is a text field, the same default the widgets use
+     */
+    public function testAFieldWithNoTypeRendersAsText(): void {
+        $spy = $this->setupSpyView();
+        Micro::add(FormWidgets::class);
+        $this->form->fetchInput('email', []);
+        $this->assertEquals(FormWidgets::VIEW_PREFIX.'text', $spy->fetchLog[0]['template']);
+    }
+
+    /**
+     * An unknown type used to render an empty string - no error, no warning, a missing row in
+     * somebody's form and nothing anywhere to say why
+     */
+    public function testAnUnknownTypeSaysSoInsteadOfRenderingNothing(): void {
+        $this->setupSpyView();
+        Micro::add(FormWidgets::class);
+        Micro::add(LoggerInterface::class, SpyLogger::class);
+        $result = $this->form->fetchInput('colour', ['type' => 'colour-picker']);
+        $this->assertStringContainsString('colour-picker', $result);
+        $this->assertStringContainsString('no form widget', $result);
+        $logged = Micro::get(LoggerInterface::class)->warnings;
+        $this->assertCount(1, $logged);
+        $this->assertStringContainsString('colour-picker', $logged[0]);
     }
 
     public function testFetchCombinesErrorsAndAllFields(): void {
