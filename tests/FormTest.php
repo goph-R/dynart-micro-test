@@ -586,7 +586,49 @@ final class FormTest extends TestCase {
         $form = new Form(new Request(), $this->session, 'form', false);
         $form->addFields(['name' => ['type' => 'text']]);
         $form->bind();
-        $this->assertEquals([], $form->values());
+        $this->assertEquals(['name' => null], $form->values());
+    }
+
+    /**
+     * A browser sends nothing for an unticked checkbox, and the field still has to arrive
+     *
+     * Otherwise a controller cannot tell "turned off" from "not on this form", and a setting
+     * that is switched off stays on with the page reporting that it saved.
+     */
+    public function testBindGivesUnsentFieldsANullValue(): void {
+        $_REQUEST['form'] = ['name' => 'Joe'];
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->addFields([
+            'name' => ['type' => 'text'],
+            'open' => ['type' => 'checkbox', 'required' => false],
+            'roles' => ['type' => 'checkboxes', 'required' => false],
+        ], false);
+        $form->bind();
+        $this->assertTrue(array_key_exists('open', $form->values()));
+        $this->assertNull($form->value('open'));
+        $this->assertTrue(array_key_exists('roles', $form->values()));
+    }
+
+    /**
+     * A field the form never declared stays missing, which is how "not asked" is said
+     */
+    public function testBindLeavesUndeclaredFieldsOutOfTheValues(): void {
+        $_REQUEST['form'] = ['name' => 'Joe'];
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->bind();
+        $this->assertFalse(array_key_exists('categories', $form->values()));
+    }
+
+    /**
+     * What the request carried beyond the declared fields is kept, the CSRF token among it
+     */
+    public function testBindKeepsRequestValuesWithoutAField(): void {
+        $_REQUEST['form'] = ['name' => 'Joe', '_csrf' => 'token'];
+        $form = new Form(new Request(), $this->session, 'form', false);
+        $form->addFields(['name' => ['type' => 'text']]);
+        $form->bind();
+        $this->assertEquals('token', $form->value('_csrf'));
     }
 
     // --- Per field required ---
