@@ -246,4 +246,57 @@ final class RouterTest extends TestCase
         $this->assertFalse($router->hasCatchAll('/docs/?'));
         $this->assertFalse($router->hasCatchAll('/docs'));
     }
+    // --- HEAD ---
+
+    /**
+     * @return Router A router whose current request is the given method and path
+     */
+    private function routerAt2(string $path, string $method): Router {
+        $this->mockConfigGetWithRewrite();
+        $this->request->method('httpMethod')->will($this->returnValue($method));
+        $this->request->method('get')->will($this->returnValue($path));
+        return new Router($this->config, $this->request);
+    }
+
+    /**
+     * A `HEAD` is a `GET` that stops before the body, and its headers must be the ones a `GET`
+     * would have sent
+     *
+     * Routes are registered under `GET`, so before this every URL of every application answered
+     * **404** to a `HEAD` - a site that looks alive to a browser and dead to everything that
+     * checks a URL without reading it: uptime monitors, link checkers, and the feed readers that
+     * ask whether a feed changed before fetching it.
+     */
+    public function testAHeadRequestMatchesAGetRoute(): void {
+        $router = $this->routerAt2('/post/hello', 'HEAD');
+        $router->add('/post/?', ['Test', 'callable']);
+        $this->assertEquals([['Test', 'callable'], ['hello']], $router->matchCurrentRoute());
+    }
+
+    /**
+     * The home route is matched by its own branch, which is exactly why the mapping is one
+     * method and not two lines inline: the two asking different questions answers 404 for `/`
+     * alone, which is the hardest version of this to notice.
+     */
+    public function testAHeadRequestMatchesTheHomeRoute(): void {
+        $router = $this->routerAt2('/', 'HEAD');
+        $router->add('/', ['Test', 'home']);
+        $this->assertEquals([['Test', 'home'], []], $router->matchCurrentRoute());
+    }
+
+    /**
+     * Mapped to `GET` and to nothing else: a `HEAD` asking for a form submission is not a thing,
+     * and answering one would run a handler that expects to change something
+     */
+    public function testAHeadRequestDoesNotReachAPostOnlyRoute(): void {
+        $router = $this->routerAt2('/login', 'HEAD');
+        $router->add('/login', ['Test', 'callable'], 'POST');
+        $this->assertEquals(Router::ROUTE_NOT_FOUND, $router->matchCurrentRoute());
+    }
+
+    public function testPostStillMatchesPost(): void {
+        $router = $this->routerAt2('/login', 'POST');
+        $router->add('/login', ['Test', 'callable'], 'POST');
+        $this->assertEquals([['Test', 'callable'], []], $router->matchCurrentRoute());
+    }
 }
