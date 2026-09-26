@@ -239,6 +239,23 @@ final class RouterTest extends TestCase
         $this->assertEquals([['Test', 'catchAll'], ['about/contact']], $router->matchCurrentRoute());
     }
 
+    /**
+     * The same promise between catch-alls: a plugin's `/docs/*` registered after the site's `/*`
+     */
+    public function testALongerCatchAllWinsOverOneRegisteredBefore(): void {
+        $router = $this->routerAt('/docs/engine/VGA');
+        $router->add('/*', ['Test', 'root']);
+        $router->add('/docs/*', ['Test', 'docs']);
+        $this->assertEquals([['Test', 'docs'], ['engine/VGA']], $router->matchCurrentRoute());
+    }
+
+    public function testTheShorterCatchAllStillGetsWhatTheLongerOneDoesNot(): void {
+        $router = $this->routerAt('/about/docs');
+        $router->add('/*', ['Test', 'root']);
+        $router->add('/docs/*', ['Test', 'docs']);
+        $this->assertEquals([['Test', 'root'], ['about/docs']], $router->matchCurrentRoute());
+    }
+
     public function testHasCatchAll(): void {
         $router = $this->routerAt('/');
         $this->assertTrue($router->hasCatchAll('/docs/*'));
